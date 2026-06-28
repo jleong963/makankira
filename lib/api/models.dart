@@ -200,3 +200,122 @@ class ParticipantOrder {
             .toList(),
       );
 }
+
+class BillAdjustment {
+  final String calculationMode;
+  final bool includeOrganizerInSplit;
+  final int taxAmountCents;
+  final int serviceChargeAmountCents;
+  final int discountAmountCents;
+  final String companyClaimType; // none | fixed | percentage
+  final double? companyClaimPercent;
+  final int companyClaimAmountCents;
+  final int? finalBillAmountCents;
+
+  BillAdjustment({
+    this.calculationMode = 'item_based',
+    this.includeOrganizerInSplit = true,
+    this.taxAmountCents = 0,
+    this.serviceChargeAmountCents = 0,
+    this.discountAmountCents = 0,
+    this.companyClaimType = 'none',
+    this.companyClaimPercent,
+    this.companyClaimAmountCents = 0,
+    this.finalBillAmountCents,
+  });
+
+  factory BillAdjustment.fromJson(Map<String, dynamic> j) => BillAdjustment(
+        calculationMode: j['calculationMode'] as String? ?? 'item_based',
+        includeOrganizerInSplit: j['includeOrganizerInSplit'] as bool? ?? true,
+        taxAmountCents: (j['taxAmountCents'] as num?)?.toInt() ?? 0,
+        serviceChargeAmountCents: (j['serviceChargeAmountCents'] as num?)?.toInt() ?? 0,
+        discountAmountCents: (j['discountAmountCents'] as num?)?.toInt() ?? 0,
+        companyClaimType: j['companyClaimType'] as String? ?? 'none',
+        companyClaimPercent: (j['companyClaimPercent'] as num?)?.toDouble(),
+        companyClaimAmountCents: (j['companyClaimAmountCents'] as num?)?.toInt() ?? 0,
+        finalBillAmountCents: (j['finalBillAmountCents'] as num?)?.toInt(),
+      );
+}
+
+class PaymentResult {
+  final String id;
+  final String participantName;
+  final String participantRole;
+  final String? mobileNumber;
+  final int subtotalCents;
+  final int taxCents;
+  final int serviceChargeCents;
+  final int discountCents;
+  final int companyClaimCents;
+  final int farewellSponsoredShareCents;
+  final int roundingAdjustmentCents;
+  final int totalDueCents;
+  final bool isManualOverride;
+  final String paymentStatus;
+  final String? paymentReference;
+
+  PaymentResult({
+    required this.id,
+    required this.participantName,
+    required this.participantRole,
+    this.mobileNumber,
+    required this.subtotalCents,
+    required this.taxCents,
+    required this.serviceChargeCents,
+    required this.discountCents,
+    required this.companyClaimCents,
+    required this.farewellSponsoredShareCents,
+    required this.roundingAdjustmentCents,
+    required this.totalDueCents,
+    required this.isManualOverride,
+    required this.paymentStatus,
+    this.paymentReference,
+  });
+
+  bool get isHonoree => participantRole == 'farewell_honoree';
+
+  factory PaymentResult.fromJson(Map<String, dynamic> j) {
+    int c(String k) => (j[k] as num?)?.toInt() ?? 0;
+    return PaymentResult(
+      id: j['id'] as String,
+      participantName: j['participantName'] as String,
+      participantRole: j['participantRole'] as String? ?? 'paying_participant',
+      mobileNumber: j['mobileNumber'] as String?,
+      subtotalCents: c('subtotalCents'),
+      taxCents: c('taxCents'),
+      serviceChargeCents: c('serviceChargeCents'),
+      discountCents: c('discountCents'),
+      companyClaimCents: c('companyClaimCents'),
+      farewellSponsoredShareCents: c('farewellSponsoredShareCents'),
+      roundingAdjustmentCents: c('roundingAdjustmentCents'),
+      totalDueCents: c('totalDueCents'),
+      isManualOverride: j['isManualOverride'] as bool? ?? false,
+      paymentStatus: j['paymentStatus'] as String? ?? 'pending',
+      paymentReference: j['paymentReference'] as String?,
+    );
+  }
+}
+
+class CalcSummary {
+  final int calculatedTotalCents;
+  final int? finalBillAmountCents;
+  final int companyClaimAmountCents;
+  final int collectedFromParticipantsCents;
+  final int mismatchCents;
+
+  CalcSummary({
+    required this.calculatedTotalCents,
+    this.finalBillAmountCents,
+    required this.companyClaimAmountCents,
+    required this.collectedFromParticipantsCents,
+    required this.mismatchCents,
+  });
+
+  factory CalcSummary.fromJson(Map<String, dynamic> j) => CalcSummary(
+        calculatedTotalCents: (j['calculatedTotalCents'] as num?)?.toInt() ?? 0,
+        finalBillAmountCents: (j['finalBillAmountCents'] as num?)?.toInt(),
+        companyClaimAmountCents: (j['companyClaimAmountCents'] as num?)?.toInt() ?? 0,
+        collectedFromParticipantsCents: (j['collectedFromParticipantsCents'] as num?)?.toInt() ?? 0,
+        mismatchCents: (j['mismatchCents'] as num?)?.toInt() ?? 0,
+      );
+}

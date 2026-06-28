@@ -51,3 +51,14 @@ String formatRM(int cents) {
   final sign = cents < 0 ? '-' : '';
   return '${sign}RM ${(cents.abs() / 100).toStringAsFixed(2)}';
 }
+
+/// Integer sen -> editable RM string ('' when null).
+String centsToInput(int? cents) => cents == null ? '' : (cents / 100).toStringAsFixed(2);
+
+/// RM text -> integer sen (null when blank/invalid).
+int? parseRMToCents(String s) {
+  final t = s.trim();
+  if (t.isEmpty) return null;
+  final v = double.tryParse(t);
+  return v == null ? null : (v * 100).round();
+}

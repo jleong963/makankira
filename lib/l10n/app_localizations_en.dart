@@ -313,4 +313,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteOrderConfirm => 'Delete this order?';
+
+  @override
+  String get calcMode => 'Calculation mode';
+
+  @override
+  String get modeItemBased => 'Item-based';
+
+  @override
+  String get modeEqualSplit => 'Equal split';
+
+  @override
+  String get modeFarewell => 'Farewell';
+
+  @override
+  String get tax => 'Tax (RM)';
+
+  @override
+  String get serviceCharge => 'Service charge (RM)';
+
+  @override
+  String get discount => 'Discount (RM)';
+
+  @override
+  String get finalBill => 'Final bill (RM)';
+
+  @override
+  String get companyClaim => 'Company claim';
+
+  @override
+  String get claimNone => 'None';
+
+  @override
+  String get claimFixed => 'Fixed (RM)';
+
+  @override
+  String get claimPercent => 'Percentage (%)';
+
+  @override
+  String get claimValue => 'Value';
+
+  @override
+  String get calculate => 'Calculate';
+
+  @override
+  String get results => 'Results';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get totalDue => 'Total due';
+
+  @override
+  String get calculatedTotal => 'Calculated total';
+
+  @override
+  String get mismatch => 'Mismatch';
+
+  @override
+  String get billMismatchWarning =>
+      'Calculated total differs from the final bill.';
+
+  @override
+  String get noResults => 'Run Calculate to see each person\'s amount.';
+
+  @override
+  String get farewellShareLabel => 'Farewell share';
 }

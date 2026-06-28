@@ -314,4 +314,70 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get deleteOrderConfirm => 'Padam pesanan ini?';
+
+  @override
+  String get calcMode => 'Kaedah pengiraan';
+
+  @override
+  String get modeItemBased => 'Ikut item';
+
+  @override
+  String get modeEqualSplit => 'Bahagi sama rata';
+
+  @override
+  String get modeFarewell => 'Perpisahan';
+
+  @override
+  String get tax => 'Cukai (RM)';
+
+  @override
+  String get serviceCharge => 'Caj perkhidmatan (RM)';
+
+  @override
+  String get discount => 'Diskaun (RM)';
+
+  @override
+  String get finalBill => 'Bil akhir (RM)';
+
+  @override
+  String get companyClaim => 'Tuntutan syarikat';
+
+  @override
+  String get claimNone => 'Tiada';
+
+  @override
+  String get claimFixed => 'Tetap (RM)';
+
+  @override
+  String get claimPercent => 'Peratus (%)';
+
+  @override
+  String get claimValue => 'Nilai';
+
+  @override
+  String get calculate => 'Kira';
+
+  @override
+  String get results => 'Keputusan';
+
+  @override
+  String get subtotal => 'Subjumlah';
+
+  @override
+  String get totalDue => 'Jumlah perlu bayar';
+
+  @override
+  String get calculatedTotal => 'Jumlah dikira';
+
+  @override
+  String get mismatch => 'Beza';
+
+  @override
+  String get billMismatchWarning => 'Jumlah dikira berbeza daripada bil akhir.';
+
+  @override
+  String get noResults => 'Tekan Kira untuk lihat jumlah setiap orang.';
+
+  @override
+  String get farewellShareLabel => 'Bahagian perpisahan';
 }

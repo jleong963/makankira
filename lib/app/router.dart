@@ -8,6 +8,7 @@ import '../features/meals/dashboard_screen.dart';
 import '../features/meals/meal_detail_screen.dart';
 import '../features/meals/meal_setup_screen.dart';
 import '../features/menu/menu_screen.dart';
+import '../features/billing/bill_screen.dart';
 import '../features/orders/order_form_screen.dart';
 import '../features/orders/orders_screen.dart';
 
@@ -51,6 +52,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meals/:id/orders',
         builder: (context, state) => OrdersScreen(mealId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/meals/:id/bill',
+        builder: (context, state) => BillScreen(mealId: state.pathParameters['id']!),
       ),
     ],
   );

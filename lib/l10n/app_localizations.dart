@@ -705,6 +705,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this order?'**
   String get deleteOrderConfirm;
+
+  /// No description provided for @calcMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation mode'**
+  String get calcMode;
+
+  /// No description provided for @modeItemBased.
+  ///
+  /// In en, this message translates to:
+  /// **'Item-based'**
+  String get modeItemBased;
+
+  /// No description provided for @modeEqualSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal split'**
+  String get modeEqualSplit;
+
+  /// No description provided for @modeFarewell.
+  ///
+  /// In en, this message translates to:
+  /// **'Farewell'**
+  String get modeFarewell;
+
+  /// No description provided for @tax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax (RM)'**
+  String get tax;
+
+  /// No description provided for @serviceCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Service charge (RM)'**
+  String get serviceCharge;
+
+  /// No description provided for @discount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount (RM)'**
+  String get discount;
+
+  /// No description provided for @finalBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Final bill (RM)'**
+  String get finalBill;
+
+  /// No description provided for @companyClaim.
+  ///
+  /// In en, this message translates to:
+  /// **'Company claim'**
+  String get companyClaim;
+
+  /// No description provided for @claimNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get claimNone;
+
+  /// No description provided for @claimFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed (RM)'**
+  String get claimFixed;
+
+  /// No description provided for @claimPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage (%)'**
+  String get claimPercent;
+
+  /// No description provided for @claimValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get claimValue;
+
+  /// No description provided for @calculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get calculate;
+
+  /// No description provided for @results.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get results;
+
+  /// No description provided for @subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotal;
+
+  /// No description provided for @totalDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total due'**
+  String get totalDue;
+
+  /// No description provided for @calculatedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated total'**
+  String get calculatedTotal;
+
+  /// No description provided for @mismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Mismatch'**
+  String get mismatch;
+
+  /// No description provided for @billMismatchWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated total differs from the final bill.'**
+  String get billMismatchWarning;
+
+  /// No description provided for @noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Run Calculate to see each person\'s amount.'**
+  String get noResults;
+
+  /// No description provided for @farewellShareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Farewell share'**
+  String get farewellShareLabel;
 }
 
 class _AppLocalizationsDelegate

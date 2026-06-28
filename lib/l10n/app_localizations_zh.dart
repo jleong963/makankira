@@ -310,4 +310,70 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deleteOrderConfirm => '删除此点餐？';
+
+  @override
+  String get calcMode => '计算方式';
+
+  @override
+  String get modeItemBased => '按项目';
+
+  @override
+  String get modeEqualSplit => '平均分摊';
+
+  @override
+  String get modeFarewell => '欢送会';
+
+  @override
+  String get tax => '税务（RM）';
+
+  @override
+  String get serviceCharge => '服务费（RM）';
+
+  @override
+  String get discount => '折扣（RM）';
+
+  @override
+  String get finalBill => '最终账单（RM）';
+
+  @override
+  String get companyClaim => '公司报销';
+
+  @override
+  String get claimNone => '无';
+
+  @override
+  String get claimFixed => '固定金额（RM）';
+
+  @override
+  String get claimPercent => '百分比（%）';
+
+  @override
+  String get claimValue => '数值';
+
+  @override
+  String get calculate => '计算';
+
+  @override
+  String get results => '结果';
+
+  @override
+  String get subtotal => '小计';
+
+  @override
+  String get totalDue => '应付总额';
+
+  @override
+  String get calculatedTotal => '计算总额';
+
+  @override
+  String get mismatch => '差额';
+
+  @override
+  String get billMismatchWarning => '计算总额与最终账单不符。';
+
+  @override
+  String get noResults => '点击「计算」查看每人金额。';
+
+  @override
+  String get farewellShareLabel => '欢送分摊';
 }
