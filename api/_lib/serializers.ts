@@ -151,4 +151,19 @@ export function toPaymentResult(row: Row): Record<string, unknown> {
   };
 }
 
+export function toPaymentStatusEvent(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    mealSessionId: row.meal_session_id,
+    paymentResultId: str(row.payment_result_id),
+    eventType: row.event_type,
+    fromStatus: str(row.from_status),
+    toStatus: str(row.to_status),
+    amountCents: num(row.amount_cents),
+    note: str(row.note),
+    createdByUserId: str(row.created_by_user_id),
+    createdAt: row.created_at,
+  };
+}
+
 export const serdeHelpers = { str, num, bool };
