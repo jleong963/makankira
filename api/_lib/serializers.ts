@@ -66,4 +66,89 @@ export function toPaymentMethod(row: Row): Record<string, unknown> {
   };
 }
 
+export function toMenuItem(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    mealSessionId: row.meal_session_id,
+    itemCode: str(row.item_code),
+    name: row.name,
+    category: str(row.category),
+    description: str(row.description),
+    estimatedPriceCents: num(row.estimated_price_cents),
+    actualPriceCents: num(row.actual_price_cents),
+    imageUrl: str(row.image_url),
+    menuUrl: str(row.menu_url),
+    available: bool(row.available),
+    sortOrder: num(row.sort_order),
+  };
+}
+
+export function toOrderItem(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    menuItemId: row.menu_item_id,
+    quantity: num(row.quantity),
+    remarks: str(row.remarks),
+  };
+}
+
+export function toOrder(row: Row, items: Row[]): Record<string, unknown> {
+  return {
+    id: row.id,
+    mealSessionId: row.meal_session_id,
+    participantUserId: str(row.participant_user_id),
+    participantName: row.participant_name,
+    participantRole: row.participant_role,
+    mobileNumber: str(row.mobile_number),
+    items: items.map(toOrderItem),
+    submittedAt: str(row.submitted_at),
+  };
+}
+
+export function toBillAdjustment(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    mealSessionId: row.meal_session_id,
+    calculationMode: row.calculation_mode,
+    includeOrganizerInSplit: bool(row.include_organizer_in_split),
+    taxAmountCents: num(row.tax_amount_cents),
+    serviceChargeAmountCents: num(row.service_charge_amount_cents),
+    discountAmountCents: num(row.discount_amount_cents),
+    companyClaimType: row.company_claim_type,
+    companyClaimPercent: num(row.company_claim_percent),
+    companyClaimAmountCents: num(row.company_claim_amount_cents),
+    taxAllocationMethod: row.tax_allocation_method,
+    serviceChargeAllocationMethod: row.service_charge_allocation_method,
+    discountAllocationMethod: row.discount_allocation_method,
+    companyClaimAllocationMethod: row.company_claim_allocation_method,
+    farewellCostAllocationMethod: row.farewell_cost_allocation_method,
+    roundingAdjustmentCents: num(row.rounding_adjustment_cents),
+    finalBillAmountCents: num(row.final_bill_amount_cents),
+  };
+}
+
+export function toPaymentResult(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    mealSessionId: row.meal_session_id,
+    participantOrderId: str(row.participant_order_id),
+    participantName: row.participant_name,
+    mobileNumber: str(row.mobile_number),
+    participantRole: row.participant_role,
+    subtotalCents: num(row.subtotal_cents),
+    taxCents: num(row.tax_cents),
+    serviceChargeCents: num(row.service_charge_cents),
+    discountCents: num(row.discount_cents),
+    companyClaimCents: num(row.company_claim_cents),
+    farewellSponsoredShareCents: num(row.farewell_sponsored_share_cents),
+    roundingAdjustmentCents: num(row.rounding_adjustment_cents),
+    totalDueCents: num(row.total_due_cents),
+    isManualOverride: bool(row.is_manual_override),
+    paymentStatus: row.payment_status,
+    paymentMethodId: str(row.payment_method_id),
+    paymentReference: str(row.payment_reference),
+    paidAt: str(row.paid_at),
+  };
+}
+
 export const serdeHelpers = { str, num, bool };
