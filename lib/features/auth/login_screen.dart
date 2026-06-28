@@ -1,22 +1,61 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_web/web_only.dart' as gsi_web;
 import '../../l10n/app_localizations.dart';
 import '../../shared/language_menu.dart';
+import 'auth_controller.dart';
 
-/// Screen 1 — focused social-login entry. Google primary, Facebook secondary.
-/// (The provider SDK that fetches the credential is wired in a follow-up; the
-/// buttons already target AuthController.signIn.)
-class LoginScreen extends ConsumerWidget {
+/// Screen 1 — social-login landing. Google is primary (rendered GIS button,
+/// required for web); Facebook is secondary.
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
-  void _pending(BuildContext context, String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$provider sign-in is wired next (OAuth SDK).')),
-    );
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = GoogleSignIn.instance.authenticationEvents.listen((event) {
+      if (event is GoogleSignInAuthenticationEventSignIn) {
+        final idToken = event.user.authentication.idToken;
+        if (idToken != null) {
+          ref.read(authProvider.notifier).signIn('google', idToken);
+        }
+      }
+    });
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _facebook() async {
+    final l = AppLocalizations.of(context);
+    try {
+      final result = await FacebookAuth.instance.login();
+      final token = result.accessToken;
+      if (result.status == LoginStatus.success && token != null) {
+        await ref.read(authProvider.notifier).signIn('facebook', token.tokenString);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.loginError)));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final text = Theme.of(context).textTheme;
     return Scaffold(
@@ -39,14 +78,11 @@ class LoginScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(l.loginSubtitle, textAlign: TextAlign.center, style: text.bodyMedium),
                   const SizedBox(height: 32),
-                  FilledButton.icon(
-                    onPressed: () => _pending(context, 'Google'),
-                    icon: const Icon(Icons.login),
-                    label: Text(l.continueWithGoogle),
-                  ),
+                  // Google's web sign-in must use the SDK-rendered button.
+                  Align(child: gsi_web.renderButton()),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => _pending(context, 'Facebook'),
+                    onPressed: _facebook,
                     icon: const Icon(Icons.facebook),
                     label: Text(l.continueWithFacebook),
                   ),
