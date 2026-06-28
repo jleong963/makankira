@@ -465,4 +465,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSaved => 'Profile saved';
+
+  @override
+  String get enableWebPush => 'Enable notifications on this device';
+
+  @override
+  String get webPushEnabled => 'Notifications enabled on this device';
+
+  @override
+  String get webPushFailed => 'Couldn\'t enable notifications here.';
+
+  @override
+  String get emailReminderNote =>
+      'Order reminders are also sent to your sign-in email on all devices.';
+
+  @override
+  String get webPushNote =>
+      'Web Push works on Android and desktop browsers (not iOS).';
 }

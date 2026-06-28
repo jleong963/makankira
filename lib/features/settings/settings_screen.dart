@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.notifications_outlined),
             title: Text(l.notifications),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.comingSoon))),
+            onTap: () => context.push('/settings/notifications'),
           ),
         ],
       ),

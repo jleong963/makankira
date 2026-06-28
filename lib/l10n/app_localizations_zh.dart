@@ -460,4 +460,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileSaved => '资料已保存';
+
+  @override
+  String get enableWebPush => '在此设备上启用通知';
+
+  @override
+  String get webPushEnabled => '已在此设备启用通知';
+
+  @override
+  String get webPushFailed => '无法在此启用通知。';
+
+  @override
+  String get emailReminderNote => '点餐提醒也会发送到您登录的电子邮件（所有设备）。';
+
+  @override
+  String get webPushNote => 'Web Push 适用于安卓和桌面浏览器（不支持 iOS）。';
 }

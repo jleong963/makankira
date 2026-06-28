@@ -1005,6 +1005,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile saved'**
   String get profileSaved;
+
+  /// No description provided for @enableWebPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications on this device'**
+  String get enableWebPush;
+
+  /// No description provided for @webPushEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications enabled on this device'**
+  String get webPushEnabled;
+
+  /// No description provided for @webPushFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t enable notifications here.'**
+  String get webPushFailed;
+
+  /// No description provided for @emailReminderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Order reminders are also sent to your sign-in email on all devices.'**
+  String get emailReminderNote;
+
+  /// No description provided for @webPushNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Push works on Android and desktop browsers (not iOS).'**
+  String get webPushNote;
 }
 
 class _AppLocalizationsDelegate

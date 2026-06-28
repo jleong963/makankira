@@ -464,4 +464,21 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get profileSaved => 'Profil disimpan';
+
+  @override
+  String get enableWebPush => 'Dayakan pemberitahuan pada peranti ini';
+
+  @override
+  String get webPushEnabled => 'Pemberitahuan didayakan pada peranti ini';
+
+  @override
+  String get webPushFailed => 'Tidak dapat mendayakan pemberitahuan di sini.';
+
+  @override
+  String get emailReminderNote =>
+      'Peringatan pesanan juga dihantar ke e-mel log masuk anda pada semua peranti.';
+
+  @override
+  String get webPushNote =>
+      'Web Push berfungsi pada pelayar Android dan desktop (bukan iOS).';
 }

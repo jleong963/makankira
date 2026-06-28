@@ -150,5 +150,10 @@
   "setDefault": "Jadikan lalai",
   "defaultLabel": "Lalai",
   "noSavedMethods": "Belum ada kaedah disimpan.",
-  "profileSaved": "Profil disimpan"
+  "profileSaved": "Profil disimpan",
+  "enableWebPush": "Dayakan pemberitahuan pada peranti ini",
+  "webPushEnabled": "Pemberitahuan didayakan pada peranti ini",
+  "webPushFailed": "Tidak dapat mendayakan pemberitahuan di sini.",
+  "emailReminderNote": "Peringatan pesanan juga dihantar ke e-mel log masuk anda pada semua peranti.",
+  "webPushNote": "Web Push berfungsi pada pelayar Android dan desktop (bukan iOS)."
 }

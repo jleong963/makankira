@@ -12,6 +12,7 @@ import '../features/billing/bill_screen.dart';
 import '../features/orders/order_form_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/payments/payment_requests_screen.dart';
+import '../features/settings/notifications_screen.dart';
 import '../features/settings/payment_defaults_screen.dart';
 import '../features/settings/profile_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -68,6 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(path: '/settings/profile', builder: (context, state) => const ProfileScreen()),
       GoRoute(path: '/settings/payment-methods', builder: (context, state) => const PaymentDefaultsScreen()),
+      GoRoute(path: '/settings/notifications', builder: (context, state) => const NotificationsScreen()),
     ],
   );
 
