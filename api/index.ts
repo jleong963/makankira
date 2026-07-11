@@ -367,7 +367,12 @@ const routes: Route[] = [
     const mealId = typeof req.query.mealId === 'string' ? req.query.mealId : null;
     if (mealId) await getMealForOwner(String(user.id), mealId);
     const filename = typeof req.query.filename === 'string' ? req.query.filename : 'upload';
-    const contentType = String(req.headers['content-type'] ?? 'application/octet-stream');
+    // The client sends raw bytes as application/octet-stream (so Vercel's body
+    // parser passes them through untouched) and carries the real media type here.
+    const contentType =
+      typeof req.query.contentType === 'string' && req.query.contentType
+        ? req.query.contentType
+        : String(req.headers['content-type'] ?? 'application/octet-stream');
     const data = await readBody(req);
     if (data.length === 0) throw new HttpError(400, 'empty_file', 'No file data received');
     const file = await uploadFile({ userId: String(user.id), mealId, fileKind, filename, contentType, data });

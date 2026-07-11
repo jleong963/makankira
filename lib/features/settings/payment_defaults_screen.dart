@@ -154,7 +154,11 @@ class _MethodEditorState extends ConsumerState<_MethodEditor> {
       setState(() => _qrFileId = data['id'] as String?);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      // Surface the server's actual message (ApiException.toString() is the
+      // message) and keep it up long enough to read the diagnostic text.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e'), duration: const Duration(seconds: 6)),
+      );
     } finally {
       if (mounted) setState(() => _uploading = false);
     }

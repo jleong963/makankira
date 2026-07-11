@@ -7,7 +7,7 @@ import type { Row } from '@libsql/client';
 import { put, del } from '@vercel/blob';
 import { queryOne, execute, query } from './db.js';
 import { newId } from './ids.js';
-import { env } from './env.js';
+import { env, envOptional } from './env.js';
 import { HttpError } from './http.js';
 
 const FILE_KINDS = ['duitnow_qr', 'menu_image', 'menu_excel', 'export_excel', 'export_csv', 'other'];
@@ -38,11 +38,31 @@ export async function uploadFile(args: {
 
   const safe = (args.filename || 'upload').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
   const pathname = `${args.mealId ?? args.userId}/${kind}-${newId('file')}-${safe}`;
-  const blob = await put(pathname, args.data, {
-    access: 'public',
-    contentType: args.contentType,
-    token: env('BLOB_READ_WRITE_TOKEN'),
-  });
+
+  // Fail with a clear, actionable error when storage isn't wired up, rather than
+  // the opaque 500 that a raw env()/put() throw would produce.
+  const token = envOptional('BLOB_READ_WRITE_TOKEN');
+  if (!token) {
+    throw new HttpError(
+      503,
+      'storage_not_configured',
+      'File storage is not configured on the server (BLOB_READ_WRITE_TOKEN is missing). Create a Vercel Blob store, connect it to the project, and redeploy.',
+    );
+  }
+  let blob: Awaited<ReturnType<typeof put>>;
+  try {
+    blob = await put(pathname, args.data, {
+      access: 'public',
+      contentType: args.contentType,
+      token,
+    });
+  } catch (err) {
+    throw new HttpError(
+      502,
+      'storage_upload_failed',
+      `File storage rejected the upload: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 
   const id = newId('file');
   await execute(

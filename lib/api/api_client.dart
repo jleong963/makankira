@@ -80,7 +80,15 @@ class ApiClient {
     required String contentType,
     Map<String, String>? query,
   }) async {
-    final res = await _client.post(_uri(path, query), headers: {'content-type': contentType}, body: bytes);
+    // Send bytes as application/octet-stream so Vercel's serverless body parser
+    // passes them through as a raw Buffer (it leaves req.body undefined for
+    // image/* types). The real media type travels as the contentType query param.
+    final uploadQuery = {...?query, 'contentType': contentType};
+    final res = await _client.post(
+      _uri(path, uploadQuery),
+      headers: const {'content-type': 'application/octet-stream'},
+      body: bytes,
+    );
     final dynamic data = res.body.isEmpty ? null : jsonDecode(res.body);
     if (res.statusCode >= 400) {
       if (res.statusCode == 401) onUnauthorized?.call();
