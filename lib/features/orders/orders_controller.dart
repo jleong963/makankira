@@ -33,6 +33,11 @@ class OrdersRepository {
     _invalidate(mealId);
   }
 
+  Future<void> update(String mealId, String orderId, Map<String, dynamic> body) async {
+    await _api.patchJson('/meals/$mealId/orders/$orderId', body: body);
+    _invalidate(mealId);
+  }
+
   Future<void> remove(String mealId, String orderId) async {
     await _api.delete('/meals/$mealId/orders/$orderId');
     _invalidate(mealId);

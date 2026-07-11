@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_client.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/browser.dart';
+import '../meals/meals_controller.dart';
 import 'orders_controller.dart';
 
 /// Screen 6 — order review: list, by item, by person; finalize.
@@ -60,6 +61,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    // Orders are editable only while the session is still collecting; once
+    // finalized (or later) the backend rejects changes, so reflect that here.
+    final status = ref.watch(mealDetailProvider(widget.mealId)).asData?.value.meal.status;
+    final locked = status != null && status != 'draft' && status != 'collecting_orders';
     return Scaffold(
       appBar: AppBar(
         title: Text(l.sectionOrders),
@@ -67,15 +72,15 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           IconButton(
             tooltip: l.exportExcel,
             icon: const Icon(Icons.download),
-            onPressed: () => launchUrl(
-              ref.read(apiClientProvider).fileUri('/meals/${widget.mealId}/export/restaurant-order.xlsx'),
-              webOnlyWindowName: '_blank',
+            onPressed: () => downloadUrl(
+              ref.read(apiClientProvider).fileUri('/meals/${widget.mealId}/export/restaurant-order.xlsx').toString(),
             ),
           ),
-          IconButton(tooltip: l.finalize, icon: const Icon(Icons.lock_outline), onPressed: _finalize),
+          if (!locked)
+            IconButton(tooltip: l.finalize, icon: const Icon(Icons.lock_outline), onPressed: _finalize),
         ],
       ),
-      floatingActionButton: _view == 0
+      floatingActionButton: (_view == 0 && !locked)
           ? FloatingActionButton.extended(
               onPressed: () => context.push('/meals/${widget.mealId}/orders/new'),
               icon: const Icon(Icons.add),
@@ -84,6 +89,19 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           : null,
       body: Column(
         children: [
+          if (locked)
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.lock_outline, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l.ordersLocked)),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: SegmentedButton<int>(
@@ -96,13 +114,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               onSelectionChanged: (s) => setState(() => _view = s.first),
             ),
           ),
-          Expanded(child: switch (_view) { 1 => _byItem(), 2 => _byPerson(), _ => _list() }),
+          Expanded(child: switch (_view) { 1 => _byItem(), 2 => _byPerson(), _ => _list(locked) }),
         ],
       ),
     );
   }
 
-  Widget _list() {
+  Widget _list(bool locked) {
     final l = AppLocalizations.of(context);
     final orders = ref.watch(ordersListProvider(widget.mealId));
     return orders.when(
@@ -125,10 +143,14 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 ],
               ),
               subtitle: Text('${o.items.length} · ${o.mobileNumber ?? ''}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _deleteOrder(o.id),
-              ),
+              // Tap to edit while unlocked; locked sessions are read-only.
+              onTap: locked ? null : () => context.push('/meals/${widget.mealId}/orders/new', extra: o),
+              trailing: locked
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _deleteOrder(o.id),
+                    ),
             );
           },
         );

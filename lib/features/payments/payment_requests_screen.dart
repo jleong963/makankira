@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../billing/bill_controller.dart';
 import 'payments_controller.dart';
@@ -20,12 +20,7 @@ class PaymentRequestsScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).copied)));
   }
 
-  Future<void> _openWhatsApp(BuildContext context, String url) async {
-    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).errorTitle)));
-    }
-  }
+  void _openWhatsApp(String url) => openUrl(url);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,9 +38,8 @@ class PaymentRequestsScreen extends ConsumerWidget {
           IconButton(
             tooltip: l.exportCsv,
             icon: const Icon(Icons.download),
-            onPressed: () => launchUrl(
-              ref.read(apiClientProvider).fileUri('/meals/$mealId/export/payment-requests.csv'),
-              webOnlyWindowName: '_blank',
+            onPressed: () => downloadUrl(
+              ref.read(apiClientProvider).fileUri('/meals/$mealId/export/payment-requests.csv').toString(),
             ),
           ),
           requests.maybeWhen(
@@ -108,7 +102,7 @@ class PaymentRequestsScreen extends ConsumerWidget {
                           ),
                           if (r.whatsappUrl != null)
                             TextButton.icon(
-                              onPressed: () => _openWhatsApp(context, r.whatsappUrl!),
+                              onPressed: () => _openWhatsApp(r.whatsappUrl!),
                               icon: const Icon(Icons.chat, size: 18),
                               label: Text(l.openWhatsApp),
                             ),

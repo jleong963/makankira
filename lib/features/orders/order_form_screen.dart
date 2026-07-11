@@ -8,9 +8,11 @@ import '../menu/menu_controller.dart';
 import 'orders_controller.dart';
 
 /// Screen 5 — participant order form (organizer enters on their device).
+/// Doubles as the edit form when [order] is supplied.
 class OrderFormScreen extends ConsumerStatefulWidget {
-  const OrderFormScreen({super.key, required this.mealId});
+  const OrderFormScreen({super.key, required this.mealId, this.order});
   final String mealId;
+  final ParticipantOrder? order;
 
   @override
   ConsumerState<OrderFormScreen> createState() => _OrderFormScreenState();
@@ -27,14 +29,29 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
   String? _userId;
   bool _saving = false;
 
+  bool get _isEditing => widget.order != null;
+
   @override
   void initState() {
     super.initState();
-    final auth = ref.read(authProvider);
-    final user = auth is AsyncData<AppUser?> ? auth.value : null;
-    _userId = user?.id;
-    _name.text = user?.displayName ?? '';
-    _mobile.text = user?.mobileNumber ?? '';
+    final order = widget.order;
+    if (order != null) {
+      // Edit mode: prefill from the existing order.
+      _name.text = order.participantName;
+      _mobile.text = order.mobileNumber ?? '';
+      _honoree = order.isHonoree;
+      for (final it in order.items) {
+        _qty[it.menuItemId] = it.quantity;
+        if (it.remarks != null && it.remarks!.isNotEmpty) _remarks[it.menuItemId] = it.remarks!;
+      }
+    } else {
+      // New order: default name/mobile to the signed-in organizer.
+      final auth = ref.read(authProvider);
+      final user = auth is AsyncData<AppUser?> ? auth.value : null;
+      _userId = user?.id;
+      _name.text = user?.displayName ?? '';
+      _mobile.text = user?.mobileNumber ?? '';
+    }
   }
 
   @override
@@ -60,11 +77,16 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
       'participantName': _name.text.trim(),
       'mobileNumber': _mobile.text.trim(),
       'participantRole': _honoree ? 'farewell_honoree' : 'paying_participant',
-      if (_myOrder && _userId != null) 'participantUserId': _userId,
+      if (!_isEditing && _myOrder && _userId != null) 'participantUserId': _userId,
       'items': items,
     };
     try {
-      await ref.read(ordersRepositoryProvider).create(widget.mealId, body);
+      final repo = ref.read(ordersRepositoryProvider);
+      if (_isEditing) {
+        await repo.update(widget.mealId, widget.order!.id, body);
+      } else {
+        await repo.create(widget.mealId, body);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.orderSaved)));
       Navigator.of(context).pop();
@@ -75,12 +97,64 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
     }
   }
 
+  /// Add a brand-new item straight to this meal's shared menu (so it also shows
+  /// on the menu page and for the next person ordering), then pre-select it.
+  Future<void> _addNewMenuItem() async {
+    final l = AppLocalizations.of(context);
+    final nameC = TextEditingController();
+    final priceC = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l.addItem),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameC,
+              autofocus: true,
+              decoration: InputDecoration(labelText: l.itemName),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: priceC,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: l.estimatedPrice),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l.add)),
+        ],
+      ),
+    );
+    final name = nameC.text.trim();
+    final priceCents = parseRMToCents(priceC.text);
+    nameC.dispose();
+    priceC.dispose();
+    if (ok != true || name.isEmpty) return;
+    try {
+      final item = await ref.read(menuRepositoryProvider).add(widget.mealId, {
+        'name': name,
+        'estimatedPriceCents': ?priceCents,
+      });
+      if (!mounted) return;
+      // The watched menu list refetches (add() invalidated it); pre-select the
+      // new item so it's included in this order right away.
+      setState(() => _qty[item.id] = 1);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final menu = ref.watch(menuListProvider(widget.mealId));
     return Scaffold(
-      appBar: AppBar(title: Text(l.addOrder)),
+      appBar: AppBar(title: Text(_isEditing ? l.edit : l.addOrder)),
       body: menu.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l.errorTitle}: $e')),
@@ -112,16 +186,26 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                       onChanged: (v) => setState(() => _honoree = v),
                       title: Text(l.roleHonoree),
                     ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _myOrder,
-                      onChanged: (v) => setState(() => _myOrder = v ?? false),
-                      title: Text(l.myOrder),
-                    ),
+                    if (!_isEditing)
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _myOrder,
+                        onChanged: (v) => setState(() => _myOrder = v ?? false),
+                        title: Text(l.myOrder),
+                      ),
                     const Divider(),
                     if (available.isEmpty)
                       Padding(padding: const EdgeInsets.all(16), child: Text(l.noMenuItems)),
                     ...available.map(_itemRow),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: _addNewMenuItem,
+                        icon: const Icon(Icons.add),
+                        label: Text(l.addItem),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: _saving ? null : _submit,

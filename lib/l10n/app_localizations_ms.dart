@@ -323,6 +323,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get deleteOrderConfirm => 'Padam pesanan ini?';
 
   @override
+  String get ordersLocked => 'Pesanan dikunci selepas sesi dimuktamadkan.';
+
+  @override
   String get calcMode => 'Kaedah pengiraan';
 
   @override

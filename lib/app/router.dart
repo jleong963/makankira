@@ -91,7 +91,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/meals/:id/orders/new',
-        builder: (context, state) => OrderFormScreen(mealId: state.pathParameters['id']!),
+        builder: (context, state) =>
+            OrderFormScreen(mealId: state.pathParameters['id']!, order: state.extra as ParticipantOrder?),
       ),
       GoRoute(
         path: '/meals/:id/orders',

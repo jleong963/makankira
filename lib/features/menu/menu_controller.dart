@@ -14,9 +14,10 @@ class MenuRepository {
   final Ref ref;
   ApiClient get _api => ref.read(apiClientProvider);
 
-  Future<void> add(String mealId, Map<String, dynamic> body) async {
-    await _api.postJson('/meals/$mealId/menu-items', body: body);
+  Future<MenuItem> add(String mealId, Map<String, dynamic> body) async {
+    final data = await _api.postJson('/meals/$mealId/menu-items', body: body);
     ref.invalidate(menuListProvider(mealId));
+    return MenuItem.fromJson(data['menuItem'] as Map<String, dynamic>);
   }
 
   Future<void> update(String mealId, String itemId, Map<String, dynamic> body) async {

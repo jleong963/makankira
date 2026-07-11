@@ -318,6 +318,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deleteOrderConfirm => '删除此点餐？';
 
   @override
+  String get ordersLocked => '聚餐确认后订单已锁定。';
+
+  @override
   String get calcMode => '计算方式';
 
   @override

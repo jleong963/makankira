@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import 'bill_controller.dart';
 
@@ -24,9 +24,8 @@ class BillScreen extends ConsumerWidget {
           IconButton(
             tooltip: l.exportExcel,
             icon: const Icon(Icons.download),
-            onPressed: () => launchUrl(
-              ref.read(apiClientProvider).fileUri('/meals/$mealId/export/payment-calculation.xlsx'),
-              webOnlyWindowName: '_blank',
+            onPressed: () => downloadUrl(
+              ref.read(apiClientProvider).fileUri('/meals/$mealId/export/payment-calculation.xlsx').toString(),
             ),
           ),
         ],

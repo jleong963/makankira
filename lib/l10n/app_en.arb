@@ -103,6 +103,7 @@
   "orderSaved": "Order added",
   "totalQuantity": "Total",
   "deleteOrderConfirm": "Delete this order?",
+  "ordersLocked": "Orders are locked after the session is finalized.",
   "calcMode": "Calculation mode",
   "modeItemBased": "Item-based",
   "modeEqualSplit": "Equal split",

@@ -103,6 +103,7 @@
   "orderSaved": "Pesanan ditambah",
   "totalQuantity": "Jumlah",
   "deleteOrderConfirm": "Padam pesanan ini?",
+  "ordersLocked": "Pesanan dikunci selepas sesi dimuktamadkan.",
   "calcMode": "Kaedah pengiraan",
   "modeItemBased": "Ikut item",
   "modeEqualSplit": "Bahagi sama rata",

@@ -718,6 +718,12 @@ abstract class AppLocalizations {
   /// **'Delete this order?'**
   String get deleteOrderConfirm;
 
+  /// No description provided for @ordersLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders are locked after the session is finalized.'**
+  String get ordersLocked;
+
   /// No description provided for @calcMode.
   ///
   /// In en, this message translates to:

@@ -322,6 +322,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteOrderConfirm => 'Delete this order?';
 
   @override
+  String get ordersLocked =>
+      'Orders are locked after the session is finalized.';
+
+  @override
   String get calcMode => 'Calculation mode';
 
   @override

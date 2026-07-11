@@ -103,6 +103,7 @@
   "orderSaved": "已添加点餐",
   "totalQuantity": "合计",
   "deleteOrderConfirm": "删除此点餐？",
+  "ordersLocked": "聚餐确认后订单已锁定。",
   "calcMode": "计算方式",
   "modeItemBased": "按项目",
   "modeEqualSplit": "平均分摊",
