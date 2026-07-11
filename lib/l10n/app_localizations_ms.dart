@@ -500,4 +500,63 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get exportCsv => 'Eksport CSV';
+
+  @override
+  String get inviteInvalid =>
+      'Pautan jemputan ini tidak sah atau telah dibatalkan.';
+
+  @override
+  String get leaveMeal => 'Tinggalkan majlis';
+
+  @override
+  String get leaveMealConfirm =>
+      'Buang majlis ini daripada senarai anda? Pesanan anda dikekalkan untuk penganjur.';
+
+  @override
+  String get withdrawOrder => 'Tarik balik';
+
+  @override
+  String get yourOrder => 'Pesanan anda';
+
+  @override
+  String get everyonesOrders => 'Pesanan semua orang';
+
+  @override
+  String get addYourOrder => 'Tambah pesanan anda';
+
+  @override
+  String get ordersClosed => 'Pesanan untuk majlis ini telah ditutup.';
+
+  @override
+  String get roleOrganizer => 'Penganjur';
+
+  @override
+  String get roleParticipant => 'Peserta';
+
+  @override
+  String get shareLink => 'Kongsi pautan jemputan';
+
+  @override
+  String get shareLinkHint =>
+      'Sesiapa yang ada pautan ini boleh log masuk dan menambah pesanan semasa pesanan dibuka.';
+
+  @override
+  String get copyLink => 'Salin pautan';
+
+  @override
+  String get rotateLink => 'Set semula pautan';
+
+  @override
+  String get shareLinkMessage => 'Sertai pesanan majlis kami di MakanKira:';
+
+  @override
+  String get linkRotated =>
+      'Pautan jemputan ditetapkan semula — pautan lama tidak lagi berfungsi.';
+
+  @override
+  String get storageFullTitle => 'Storan penuh';
+
+  @override
+  String get storageFullBody =>
+      'Storan aplikasi penuh, jadi perubahan anda tidak dapat disimpan. Sila padam sesi makan atau sejarah lama untuk membebaskan ruang, kemudian cuba lagi.';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../api/models.dart';
+import 'navigation.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/splash_screen.dart';
@@ -13,6 +14,8 @@ import '../features/billing/bill_screen.dart';
 import '../features/orders/order_form_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/payments/payment_requests_screen.dart';
+import '../features/participant/join_screen.dart';
+import '../features/participant/participant_meal_screen.dart';
 import '../features/settings/notifications_screen.dart';
 import '../features/settings/payment_defaults_screen.dart';
 import '../features/settings/profile_screen.dart';
@@ -41,6 +44,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   final router = GoRouter(
     initialLocation: '/splash',
+    navigatorKey: rootNavigatorKey,
     refreshListenable: authListenable,
     redirect: (context, state) {
       final auth = authListenable.value;
@@ -109,6 +113,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meals/:id/payment-requests',
         builder: (context, state) => PaymentRequestsScreen(mealId: state.pathParameters['id']!),
+      ),
+      // Invite-link flow (auth-gated: a logged-out visitor is bounced to /login
+      // and returned here after signing in).
+      GoRoute(
+        path: '/join/:token',
+        builder: (context, state) => JoinScreen(token: state.pathParameters['token']!),
+      ),
+      GoRoute(
+        path: '/joined/:id',
+        builder: (context, state) => ParticipantMealScreen(mealId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(path: '/settings/profile', builder: (context, state) => const ProfileScreen()),

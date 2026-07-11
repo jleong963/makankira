@@ -24,6 +24,7 @@ import { updateProfile } from './_lib/profile.js';
 import {
   toUser,
   toMealSession,
+  toPublicMeal,
   toPaymentMethod,
   toMenuItem,
   toOrder,
@@ -48,7 +49,25 @@ import {
 import { listMethods, addMethod, updateMethod, deleteMethod, userScope, mealScope } from './_lib/paymentMethods.js';
 import { listMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, setActualPrices } from './_lib/menu.js';
 import { importFromExcel } from './_lib/menuImport.js';
-import { listOrders, getOrder, createOrder, updateOrder, deleteOrder, orderSummary } from './_lib/orders.js';
+import {
+  listOrders,
+  getOrder,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  orderSummary,
+  getMyOrder,
+  upsertMyOrder,
+  deleteMyOrder,
+} from './_lib/orders.js';
+import {
+  joinByToken,
+  leaveMeal,
+  listJoinedMeals,
+  ensureInviteToken,
+  rotateInviteToken,
+  requireMember,
+} from './_lib/membership.js';
 import { getBill, upsertBill } from './_lib/bill.js';
 import { runCalculation } from './_lib/calculate.js';
 import { listResults, overrideResult, markPaid, markPending, listEvents } from './_lib/payments.js';
@@ -168,16 +187,29 @@ const routes: Route[] = [
     const user = await requireUser(req);
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
-    sendJson(res, 200, { meals: (await listMeals(String(user.id), { status, q })).map(toMealSession) });
+    // Dashboard = meals you organize + meals you've joined, tagged by role.
+    const owned = (await listMeals(String(user.id), { status, q })).map((m) => ({
+      ...toMealSession(m),
+      role: 'organizer',
+    }));
+    const joined = (await listJoinedMeals(String(user.id))).map((m) => ({
+      ...toPublicMeal(m),
+      role: 'participant',
+    }));
+    sendJson(res, 200, { meals: [...owned, ...joined] });
   }),
   route('POST', 'meals', async (req, res) => {
     const user = await requireUser(req);
     sendJson(res, 201, { meal: toMealSession(await createMeal(user, bodyObject(req))) });
   }),
   route('GET', 'meals/:mealId', async (req, res, p) => {
-    await requireOwnedMeal(req, p.mealId!);
-    const { meal, paymentMethods } = await getMealDetail(p.mealId!);
-    sendJson(res, 200, { meal: toMealSession(meal), paymentMethods: paymentMethods.map(toPaymentMethod) });
+    const { meal } = await requireOwnedMeal(req, p.mealId!);
+    await ensureInviteToken(meal); // lazily mint a share token for pre-existing meals
+    const detail = await getMealDetail(p.mealId!);
+    sendJson(res, 200, {
+      meal: toMealSession(detail.meal),
+      paymentMethods: detail.paymentMethods.map(toPaymentMethod),
+    });
   }),
   route('PATCH', 'meals/:mealId', async (req, res, p) => {
     const { user } = await requireOwnedMeal(req, p.mealId!);
@@ -358,6 +390,46 @@ const routes: Route[] = [
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="payment-requests-${p.mealId}.csv"`);
     res.status(200).send(await buildPaymentRequestsCsv(p.mealId!, localeOf(req, user)));
+  }),
+
+  // --- participant access via invite links (README Phase 4) ---
+  route('POST', 'join/:token', async (req, res, p) => {
+    const user = await requireUser(req);
+    const meal = await joinByToken(String(user.id), p.token!);
+    sendJson(res, 200, { mealId: meal.id });
+  }),
+  route('GET', 'meals/:mealId/member-view', async (req, res, p) => {
+    const { user, meal } = await requireMember(req, p.mealId!);
+    const menu = (await listMenuItems(p.mealId!)).filter((m) => Number(m.available) === 1).map(toMenuItem);
+    const orders = await orderSummary(p.mealId!, 'participant'); // names + items, no mobiles
+    const mine = await getMyOrder(p.mealId!, String(user.id));
+    sendJson(res, 200, {
+      meal: toPublicMeal(meal),
+      menu,
+      orders,
+      myOrder: mine ? toOrder(mine.order, mine.items) : null,
+    });
+  }),
+  route('PUT', 'meals/:mealId/my-order', async (req, res, p) => {
+    const { user } = await requireMember(req, p.mealId!);
+    const { order, items } = await upsertMyOrder(p.mealId!, String(user.id), bodyObject(req));
+    sendJson(res, 200, { order: toOrder(order, items) });
+  }),
+  route('DELETE', 'meals/:mealId/my-order', async (req, res, p) => {
+    const { user } = await requireMember(req, p.mealId!);
+    await deleteMyOrder(p.mealId!, String(user.id));
+    sendJson(res, 200, { ok: true });
+  }),
+  route('DELETE', 'meals/:mealId/membership', async (req, res, p) => {
+    // Leave: removes only your own membership (a no-op if you're not a member);
+    // your order is intentionally kept for the organizer.
+    const user = await requireUser(req);
+    await leaveMeal(String(user.id), p.mealId!);
+    sendJson(res, 200, { ok: true });
+  }),
+  route('POST', 'meals/:mealId/invite/rotate', async (req, res, p) => {
+    await requireOwnedMeal(req, p.mealId!);
+    sendJson(res, 200, { inviteToken: await rotateInviteToken(p.mealId!) });
   }),
 
   // files

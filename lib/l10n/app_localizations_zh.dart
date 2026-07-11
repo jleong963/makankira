@@ -493,4 +493,58 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get exportCsv => '导出 CSV';
+
+  @override
+  String get inviteInvalid => '此邀请链接无效或已被撤销。';
+
+  @override
+  String get leaveMeal => '退出聚餐';
+
+  @override
+  String get leaveMealConfirm => '从你的列表中移除此聚餐？你的点餐会为组织者保留。';
+
+  @override
+  String get withdrawOrder => '撤回';
+
+  @override
+  String get yourOrder => '你的点餐';
+
+  @override
+  String get everyonesOrders => '所有人的点餐';
+
+  @override
+  String get addYourOrder => '添加你的点餐';
+
+  @override
+  String get ordersClosed => '此聚餐已停止点餐。';
+
+  @override
+  String get roleOrganizer => '组织者';
+
+  @override
+  String get roleParticipant => '参与者';
+
+  @override
+  String get shareLink => '分享邀请链接';
+
+  @override
+  String get shareLinkHint => '在点餐开放期间，拥有此链接的人都可登录并添加自己的点餐。';
+
+  @override
+  String get copyLink => '复制链接';
+
+  @override
+  String get rotateLink => '重置链接';
+
+  @override
+  String get shareLinkMessage => '加入我们在 MakanKira 的聚餐点餐：';
+
+  @override
+  String get linkRotated => '邀请链接已重置——旧链接已失效。';
+
+  @override
+  String get storageFullTitle => '存储空间已满';
+
+  @override
+  String get storageFullBody => '应用存储空间已满，无法保存你的更改。请删除旧的聚餐或历史记录以释放空间，然后重试。';
 }

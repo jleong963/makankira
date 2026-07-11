@@ -1071,6 +1071,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export CSV'**
   String get exportCsv;
+
+  /// No description provided for @inviteInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite link is not valid or has been revoked.'**
+  String get inviteInvalid;
+
+  /// No description provided for @leaveMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave meal'**
+  String get leaveMeal;
+
+  /// No description provided for @leaveMealConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this meal from your list? Your order is kept for the organizer.'**
+  String get leaveMealConfirm;
+
+  /// No description provided for @withdrawOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get withdrawOrder;
+
+  /// No description provided for @yourOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order'**
+  String get yourOrder;
+
+  /// No description provided for @everyonesOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone\'s orders'**
+  String get everyonesOrders;
+
+  /// No description provided for @addYourOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your order'**
+  String get addYourOrder;
+
+  /// No description provided for @ordersClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering is closed for this meal.'**
+  String get ordersClosed;
+
+  /// No description provided for @roleOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer'**
+  String get roleOrganizer;
+
+  /// No description provided for @roleParticipant.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant'**
+  String get roleParticipant;
+
+  /// No description provided for @shareLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Share invite link'**
+  String get shareLink;
+
+  /// No description provided for @shareLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone with this link can sign in and add their order while ordering is open.'**
+  String get shareLinkHint;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLink;
+
+  /// No description provided for @rotateLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset link'**
+  String get rotateLink;
+
+  /// No description provided for @shareLinkMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Join our meal order on MakanKira:'**
+  String get shareLinkMessage;
+
+  /// No description provided for @linkRotated.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite link reset — the old link no longer works.'**
+  String get linkRotated;
+
+  /// No description provided for @storageFullTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage full'**
+  String get storageFullTitle;
+
+  /// No description provided for @storageFullBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app\'s storage is full, so your change couldn\'t be saved. Please delete old meal sessions or history to free up space, then try again.'**
+  String get storageFullBody;
 }
 
 class _AppLocalizationsDelegate

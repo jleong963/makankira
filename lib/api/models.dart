@@ -54,6 +54,8 @@ class MealSession {
   final bool reminderEnabled;
   final int reminderLeadMinutes;
   final String? remindAt;
+  final String role; // 'organizer' (owned) or 'participant' (joined)
+  final String? inviteToken; // present on owned meals (for the Share link)
 
   MealSession({
     required this.id,
@@ -70,7 +72,11 @@ class MealSession {
     required this.reminderEnabled,
     required this.reminderLeadMinutes,
     this.remindAt,
+    this.role = 'organizer',
+    this.inviteToken,
   });
+
+  bool get isParticipant => role == 'participant';
 
   factory MealSession.fromJson(Map<String, dynamic> j) => MealSession(
         id: j['id'] as String,
@@ -87,6 +93,8 @@ class MealSession {
         reminderEnabled: j['reminderEnabled'] as bool? ?? true,
         reminderLeadMinutes: (j['reminderLeadMinutes'] as num?)?.toInt() ?? 120,
         remindAt: j['remindAt'] as String?,
+        role: j['role'] as String? ?? 'organizer',
+        inviteToken: j['inviteToken'] as String?,
       );
 }
 
@@ -201,6 +209,28 @@ class ParticipantOrder {
             .cast<Map<String, dynamic>>()
             .map(OrderItem.fromJson)
             .toList(),
+      );
+}
+
+/// What a participant sees on the invite/join page: the public meal, available
+/// menu, the live per-person order list (names + items, no mobiles), and their
+/// own order (if any).
+class MemberMealView {
+  final MealSession meal;
+  final List<MenuItem> menu;
+  final List<dynamic> orders; // [{ participantOrderId, participantName, role, items:[...] }]
+  final ParticipantOrder? myOrder;
+
+  MemberMealView({required this.meal, required this.menu, required this.orders, this.myOrder});
+
+  factory MemberMealView.fromJson(Map<String, dynamic> j) => MemberMealView(
+        meal: MealSession.fromJson(j['meal'] as Map<String, dynamic>),
+        menu: (j['menu'] as List? ?? const [])
+            .cast<Map<String, dynamic>>()
+            .map(MenuItem.fromJson)
+            .toList(),
+        orders: (j['orders'] as List? ?? const <dynamic>[]),
+        myOrder: j['myOrder'] == null ? null : ParticipantOrder.fromJson(j['myOrder'] as Map<String, dynamic>),
       );
 }
 

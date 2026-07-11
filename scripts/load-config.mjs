@@ -81,6 +81,7 @@ const frontendOut = {
   SUPPORTED_LOCALES: (app.supportedLocales ?? ['en']).join(','),
   API_BASE_URL: String(frontend.apiBaseUrl ?? '/api'),
   GOOGLE_OAUTH_CLIENT_ID: String(frontend.googleOAuthClientId ?? ''),
+  INACTIVE_TIMEOUT: String(frontend.inactiveTimeout ?? '960'),
   VAPID_PUBLIC_KEY: String(frontend.vapidPublicKey ?? ''),
 };
 const frontendPath = resolve(CONFIG_DIR, `frontend.${profile}.json`);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../features/auth/session_timeout.dart';
 import '../features/settings/locale_controller.dart';
 import '../features/settings/theme_controller.dart';
 import '../l10n/app_localizations.dart';
@@ -23,6 +24,8 @@ class MakanKiraApp extends ConsumerWidget {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // Wrap all routed content so inactivity auto-logout applies app-wide.
+      builder: (context, child) => InactivityGuard(child: child ?? const SizedBox.shrink()),
       routerConfig: router,
     );
   }

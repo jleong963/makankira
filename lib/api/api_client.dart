@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'client_factory_io.dart' if (dart.library.html) 'client_factory_web.dart';
+import '../app/navigation.dart';
 import '../features/auth/auth_controller.dart';
 import 'models.dart';
 
@@ -11,12 +12,25 @@ import 'models.dart';
 const _apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '/api');
 
 class ApiClient {
-  ApiClient({http.Client? client, this.onUnauthorized}) : _client = client ?? createHttpClient();
+  ApiClient({http.Client? client, this.onUnauthorized, this.onStorageFull})
+      : _client = client ?? createHttpClient();
   final http.Client _client;
 
   /// Invoked when any request returns HTTP 401, so the session can be dropped
   /// and the auth gate can send the user back to sign in.
   final void Function()? onUnauthorized;
+
+  /// Invoked when a write fails because the database is full (code 'storage_full').
+  final void Function()? onStorageFull;
+
+  /// Raise an [ApiException] from an error response, firing the relevant hooks.
+  Never _fail(int status, dynamic data, String fallback) {
+    if (status == 401) onUnauthorized?.call();
+    final err = (data is Map && data['error'] is Map) ? data['error'] as Map : const {};
+    final code = (err['code'] ?? 'error').toString();
+    if (code == 'storage_full') onStorageFull?.call();
+    throw ApiException(status, code, (err['message'] ?? fallback).toString());
+  }
 
   Uri _uri(String path, Map<String, String>? query) {
     final base = _apiBaseUrl.endsWith('/') ? _apiBaseUrl.substring(0, _apiBaseUrl.length - 1) : _apiBaseUrl;
@@ -46,15 +60,7 @@ class ApiClient {
     }
 
     final dynamic data = res.body.isEmpty ? null : jsonDecode(res.body);
-    if (res.statusCode >= 400) {
-      if (res.statusCode == 401) onUnauthorized?.call();
-      final err = (data is Map && data['error'] is Map) ? data['error'] as Map : const {};
-      throw ApiException(
-        res.statusCode,
-        (err['code'] ?? 'error').toString(),
-        (err['message'] ?? 'Request failed').toString(),
-      );
-    }
+    if (res.statusCode >= 400) _fail(res.statusCode, data, 'Request failed');
     return data;
   }
 
@@ -90,19 +96,14 @@ class ApiClient {
       body: bytes,
     );
     final dynamic data = res.body.isEmpty ? null : jsonDecode(res.body);
-    if (res.statusCode >= 400) {
-      if (res.statusCode == 401) onUnauthorized?.call();
-      final err = (data is Map && data['error'] is Map) ? data['error'] as Map : const {};
-      throw ApiException(
-        res.statusCode,
-        (err['code'] ?? 'error').toString(),
-        (err['message'] ?? 'Upload failed').toString(),
-      );
-    }
+    if (res.statusCode >= 400) _fail(res.statusCode, data, 'Upload failed');
     return (data ?? <String, dynamic>{}) as Map<String, dynamic>;
   }
 }
 
 final apiClientProvider = Provider<ApiClient>(
-  (ref) => ApiClient(onUnauthorized: () => ref.read(authProvider.notifier).markSignedOut()),
+  (ref) => ApiClient(
+    onUnauthorized: () => ref.read(authProvider.notifier).markSignedOut(),
+    onStorageFull: showStorageFullDialog,
+  ),
 );

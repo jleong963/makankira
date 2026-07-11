@@ -7,7 +7,7 @@
 import type { VercelRequest } from '@vercel/node';
 import type { Row, InStatement } from '@libsql/client';
 import { query, queryOne, execute, batchWrite } from './db.js';
-import { newId } from './ids.js';
+import { newId, newInviteToken } from './ids.js';
 import { HttpError } from './http.js';
 import { requireUser } from './auth.js';
 import { prefillSessionMethods, listMethods, mealScope } from './paymentMethods.js';
@@ -141,8 +141,8 @@ export async function createMeal(user: Row, input: Input): Promise<Row> {
     sql: `INSERT INTO meal_sessions
       (id, owner_user_id, title, meal_type, occasion_type, farewell_enabled, restaurant_name,
        menu_url, meal_date_time, seat_details, organizer_name, organizer_contact, status,
-       reminder_enabled, remind_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
+       reminder_enabled, remind_at, invite_token)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?)`,
     args: [
       id,
       String(user.id),
@@ -158,6 +158,7 @@ export async function createMeal(user: Row, input: Input): Promise<Row> {
       asStr(input.organizerContact) ?? (user.mobile_number as string | null),
       reminderEnabled ? 1 : 0,
       remindAt,
+      newInviteToken(),
     ],
   };
 
@@ -261,6 +262,7 @@ export async function deleteMeal(userId: string, mealId: string): Promise<void> 
     { sql: 'DELETE FROM menu_items WHERE meal_session_id = ?', args: [mealId] },
     { sql: 'DELETE FROM bill_adjustments WHERE meal_session_id = ?', args: [mealId] },
     { sql: 'DELETE FROM payment_methods WHERE meal_session_id = ?', args: [mealId] },
+    { sql: 'DELETE FROM meal_participants WHERE meal_session_id = ?', args: [mealId] },
     { sql: 'DELETE FROM uploaded_files WHERE meal_session_id = ?', args: [mealId] },
     { sql: 'DELETE FROM meal_sessions WHERE id = ?', args: [mealId] },
   ]);

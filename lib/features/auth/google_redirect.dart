@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:web/web.dart' as web;
 import '../../api/api_client.dart';
+import 'session_timeout.dart';
 
 /// Popup-free Google sign-in via a full-page OAuth 2.0 / OpenID Connect redirect
 /// (`response_type=id_token`). Unlike the GIS button it never opens a popup, so
@@ -19,6 +20,20 @@ const _googleClientId = String.fromEnvironment('GOOGLE_OAUTH_CLIENT_ID');
 const _authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
 const _stateKey = 'mk_g_oauth_state';
 const _nonceKey = 'mk_g_oauth_nonce';
+const _destKey = 'mk_post_login_dest';
+
+/// The in-app destination to return to after login — the `from` query param the
+/// auth gate adds when it bounces an unauthenticated deep link (e.g. an invite
+/// link) to /login. Only in-app absolute paths are honored.
+String? _postLoginDest() {
+  final hash = web.window.location.hash;
+  final route = hash.startsWith('#') ? hash.substring(1) : hash;
+  final q = route.indexOf('?');
+  if (q < 0) return null;
+  final from = Uri.splitQueryString(route.substring(q + 1))['from'];
+  if (from == null || from.isEmpty || !from.startsWith('/') || from.startsWith('//')) return null;
+  return from;
+}
 
 /// Whether a Google client ID was compiled in (sign-in is inert without it).
 bool get googleConfigured => _googleClientId.isNotEmpty;
@@ -36,6 +51,10 @@ String _randomToken() {
 /// so there is no popup for a blocker to intercept.
 void startGoogleSignIn() {
   if (!googleConfigured) return;
+  // Remember where the user was headed (e.g. an invite link) so we can return
+  // there after the OAuth round-trip, which otherwise lands back at the origin.
+  final dest = _postLoginDest();
+  if (dest != null) web.window.sessionStorage.setItem(_destKey, dest);
   final state = _randomToken();
   final nonce = _randomToken();
   web.window.sessionStorage.setItem(_stateKey, state);
@@ -64,8 +83,10 @@ Future<bool> handleGoogleAuthRedirect() async {
   final params = Uri.splitQueryString(frag);
   final expectedState = web.window.sessionStorage.getItem(_stateKey);
   final expectedNonce = web.window.sessionStorage.getItem(_nonceKey);
+  final dest = web.window.sessionStorage.getItem(_destKey);
   web.window.sessionStorage.removeItem(_stateKey);
   web.window.sessionStorage.removeItem(_nonceKey);
+  web.window.sessionStorage.removeItem(_destKey);
 
   // Always strip the OAuth fragment so the (hash-based) router starts clean and
   // the token does not linger in the URL or history.
@@ -85,6 +106,12 @@ Future<bool> handleGoogleAuthRedirect() async {
 
   try {
     await ApiClient().postJson('/auth/login', body: {'provider': 'google', 'credential': idToken});
+    markSessionActive(); // fresh session: reset the inactivity clock
+    // Return to the page the user was headed for before login (e.g. an invite
+    // link). The early strip above already removed the OAuth token from the URL.
+    if (dest != null) {
+      web.window.history.replaceState(null, '', '${loc.pathname}${loc.search}#$dest');
+    }
   } catch (_) {
     // Token rejected or network error: stay signed out; the login screen shows.
   }

@@ -1,11 +1,12 @@
 /**
  * testdb.ts — test-only helper. Creates a fresh temp-file SQLite database with
  * the NATIVE libSQL driver (the web client can't open file: URLs) and injects it
- * into db.ts via setClient(), then applies migration 0001_init. Not imported by
- * any handler, so the native driver never reaches the Vercel function bundle.
+ * into db.ts via setClient(), then applies every migration in order (so tests
+ * see the same schema as production). Not imported by any handler, so the native
+ * driver never reaches the Vercel function bundle.
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
@@ -17,8 +18,12 @@ export async function setupTestDb(): Promise<string> {
   const client = createClient({ url: pathToFileURL(file).href });
   setClient(client);
 
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-  const sql = readFileSync(resolve(root, 'migrations', '0001_init.sql'), 'utf8');
-  await client.executeMultiple(sql);
+  const dir = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'migrations');
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
+  for (const f of files) {
+    await client.executeMultiple(readFileSync(resolve(dir, f), 'utf8'));
+  }
   return file;
 }

@@ -502,4 +502,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportCsv => 'Export CSV';
+
+  @override
+  String get inviteInvalid =>
+      'This invite link is not valid or has been revoked.';
+
+  @override
+  String get leaveMeal => 'Leave meal';
+
+  @override
+  String get leaveMealConfirm =>
+      'Remove this meal from your list? Your order is kept for the organizer.';
+
+  @override
+  String get withdrawOrder => 'Withdraw';
+
+  @override
+  String get yourOrder => 'Your order';
+
+  @override
+  String get everyonesOrders => 'Everyone\'s orders';
+
+  @override
+  String get addYourOrder => 'Add your order';
+
+  @override
+  String get ordersClosed => 'Ordering is closed for this meal.';
+
+  @override
+  String get roleOrganizer => 'Organizer';
+
+  @override
+  String get roleParticipant => 'Participant';
+
+  @override
+  String get shareLink => 'Share invite link';
+
+  @override
+  String get shareLinkHint =>
+      'Anyone with this link can sign in and add their order while ordering is open.';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get rotateLink => 'Reset link';
+
+  @override
+  String get shareLinkMessage => 'Join our meal order on MakanKira:';
+
+  @override
+  String get linkRotated => 'Invite link reset — the old link no longer works.';
+
+  @override
+  String get storageFullTitle => 'Storage full';
+
+  @override
+  String get storageFullBody =>
+      'The app\'s storage is full, so your change couldn\'t be saved. Please delete old meal sessions or history to free up space, then try again.';
 }

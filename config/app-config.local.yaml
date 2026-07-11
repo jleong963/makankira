@@ -6,6 +6,7 @@
 frontend:                                  # PUBLIC values compiled into the web app
   apiBaseUrl: "http://localhost:3000/api"  # dev API runs on a separate port
   googleOAuthClientId: ${GOOGLE_OAUTH_CLIENT_ID}
+  inactiveTimeout: ${INACTIVE_TIMEOUT:960}   # auto sign-out after N idle seconds
   vapidPublicKey: ${VAPID_PUBLIC_KEY}      # Web Push public key (safe to ship)
 
 backend:                                   # SECRET values, server-side only

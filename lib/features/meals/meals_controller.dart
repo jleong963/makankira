@@ -35,6 +35,12 @@ class MealsController extends AsyncNotifier<List<MealSession>> {
     await ref.read(apiClientProvider).delete('/meals/$id');
     await refresh();
   }
+
+  /// Owner action: replace the invite token, invalidating any shared link.
+  Future<void> rotateInvite(String id) async {
+    await ref.read(apiClientProvider).postJson('/meals/$id/invite/rotate');
+    ref.invalidate(mealDetailProvider(id));
+  }
 }
 
 final mealsProvider = AsyncNotifierProvider<MealsController, List<MealSession>>(MealsController.new);

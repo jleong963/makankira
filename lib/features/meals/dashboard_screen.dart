@@ -81,6 +81,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             return Card(
                               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                               child: ListTile(
+                                leading: Tooltip(
+                                  message: m.isParticipant ? l.roleParticipant : l.roleOrganizer,
+                                  child: Icon(m.isParticipant ? Icons.group_outlined : Icons.event_outlined),
+                                ),
                                 title: Text(m.title),
                                 subtitle: Text(
                                   [m.restaurantName, formatDateTime(m.mealDateTime)].where((s) => s.isNotEmpty).join(' · '),
@@ -89,7 +93,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   label: Text(statusLabel(l, m.status)),
                                   visualDensity: VisualDensity.compact,
                                 ),
-                                onTap: () => context.push('/meals/${m.id}'),
+                                // Owned meals open the organizer view; joined meals open the participant view.
+                                onTap: () => context.push(m.isParticipant ? '/joined/${m.id}' : '/meals/${m.id}'),
                               ),
                             );
                           },

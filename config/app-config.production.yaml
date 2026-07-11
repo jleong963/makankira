@@ -7,6 +7,7 @@
 frontend:                                  # PUBLIC values compiled into the web app
   apiBaseUrl: "/api"                       # same-origin on the production domain
   googleOAuthClientId: ${GOOGLE_OAUTH_CLIENT_ID}
+  inactiveTimeout: ${INACTIVE_TIMEOUT:960}
   vapidPublicKey: ${VAPID_PUBLIC_KEY}
 
 backend:                                   # SECRET values, server-side only

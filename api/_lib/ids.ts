@@ -20,8 +20,17 @@ export type IdPrefix =
   | 'file'
   | 'pr'
   | 'evt'
-  | 'push';
+  | 'push'
+  | 'mp'; // meal_participants
 
 export function newId(prefix: IdPrefix): string {
   return `${prefix}_${nano()}`;
+}
+
+// Invite token — a shareable capability (goes in a URL), so it uses more
+// entropy than a row id: 32 chars of a 36-symbol alphabet ≈ 165 bits.
+const nanoToken = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 32);
+
+export function newInviteToken(): string {
+  return `inv_${nanoToken()}`;
 }

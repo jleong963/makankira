@@ -43,8 +43,29 @@ export function toMealSession(row: Row): Record<string, unknown> {
     reminderLeadMinutes: num(row.reminder_lead_minutes),
     remindAt: str(row.remind_at),
     reminderSentAt: str(row.reminder_sent_at),
+    inviteToken: str(row.invite_token),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+/**
+ * Reduced meal DTO for participants viewing a meal they joined (the invite/join
+ * flow). Deliberately omits owner-only fields — no owner id, organizer contact,
+ * reminder internals, or the invite token — so a member never sees more than the
+ * shared meal context.
+ */
+export function toPublicMeal(row: Row): Record<string, unknown> {
+  return {
+    id: row.id,
+    title: row.title,
+    mealType: str(row.meal_type),
+    farewellEnabled: bool(row.farewell_enabled),
+    restaurantName: row.restaurant_name,
+    menuUrl: str(row.menu_url),
+    mealDateTime: str(row.meal_date_time),
+    organizerName: str(row.organizer_name),
+    status: row.status,
   };
 }
 

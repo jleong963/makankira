@@ -10,6 +10,35 @@
 import { createClient } from '@libsql/client/web';
 import type { Client, InArgs, InStatement, ResultSet, Row } from '@libsql/client';
 import { env, envOptional } from './env.js';
+import { HttpError } from './http.js';
+
+/**
+ * Map a write failure caused by the database being full / over its storage quota
+ * to a clear, actionable error; rethrow anything else unchanged. Turso/SQLite
+ * signal this via a SQLITE_FULL code or a "disk/database is full" / "quota" message.
+ */
+function rethrowDbError(err: unknown): never {
+  const e = err as { code?: unknown; message?: unknown };
+  const code = typeof e.code === 'string' ? e.code.toUpperCase() : '';
+  const msg = (typeof e.message === 'string' ? e.message : String(err)).toLowerCase();
+  const storageFull =
+    code.includes('FULL') ||
+    code.includes('QUOTA') ||
+    msg.includes('disk is full') ||
+    msg.includes('database is full') ||
+    msg.includes('sqlite_full') ||
+    msg.includes('quota') ||
+    (msg.includes('storage') && (msg.includes('limit') || msg.includes('exceed') || msg.includes('full'))) ||
+    (msg.includes('blocked') && msg.includes('write'));
+  if (storageFull) {
+    throw new HttpError(
+      507,
+      'storage_full',
+      'The database is full. Please delete old meal sessions or history to free up space, then try again.',
+    );
+  }
+  throw err;
+}
 
 let _client: Client | null = null;
 
@@ -42,7 +71,11 @@ export async function queryOne(sql: string, args?: InArgs): Promise<Row | null> 
 
 /** Run a single write/DDL statement. */
 export async function execute(sql: string, args?: InArgs): Promise<ResultSet> {
-  return db().execute(args ? { sql, args } : sql);
+  try {
+    return await db().execute(args ? { sql, args } : sql);
+  } catch (err) {
+    rethrowDbError(err);
+  }
 }
 
 /**
@@ -54,5 +87,9 @@ export async function execute(sql: string, args?: InArgs): Promise<ResultSet> {
  * dependency order); ON DELETE CASCADE in the schema is a backstop where active.
  */
 export async function batchWrite(statements: InStatement[]): Promise<ResultSet[]> {
-  return db().batch(statements, 'write');
+  try {
+    return await db().batch(statements, 'write');
+  } catch (err) {
+    rethrowDbError(err);
+  }
 }

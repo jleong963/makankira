@@ -168,6 +168,51 @@ export async function deleteOrder(mealId: string, id: string): Promise<void> {
   ]);
 }
 
+// ---- Self-service (participant via invite link) ----------------------------
+// A participant manages exactly one order — their own, keyed by participant_user_id.
+
+/** The order this user submitted for the meal (self-service), or null. */
+export async function getMyOrder(mealId: string, userId: string): Promise<{ order: Row; items: Row[] } | null> {
+  const order = await queryOne(
+    'SELECT * FROM participant_orders WHERE meal_session_id = ? AND participant_user_id = ?',
+    [mealId, userId],
+  );
+  if (!order) return null;
+  const items = await query(
+    'SELECT * FROM order_items WHERE participant_order_id = ? ORDER BY created_at',
+    [String(order.id)],
+  );
+  return { order, items };
+}
+
+/** Create or update the caller's own order (one self-order per participant). */
+export async function upsertMyOrder(mealId: string, userId: string, input: Input): Promise<{ order: Row; items: Row[] }> {
+  const existing = await queryOne(
+    'SELECT id FROM participant_orders WHERE meal_session_id = ? AND participant_user_id = ?',
+    [mealId, userId],
+  );
+  if (existing) {
+    // Forward only participant-editable fields; role (honoree) stays
+    // organizer-managed and the user linkage is fixed.
+    const rest: Input = {};
+    if ('participantName' in input) rest.participantName = input.participantName;
+    if ('mobileNumber' in input) rest.mobileNumber = input.mobileNumber;
+    if ('items' in input) rest.items = input.items;
+    return updateOrder(mealId, String(existing.id), rest);
+  }
+  return createOrder(mealId, { ...input, participantUserId: userId, participantRole: 'paying_participant' });
+}
+
+/** Withdraw the caller's own order. */
+export async function deleteMyOrder(mealId: string, userId: string): Promise<void> {
+  const existing = await queryOne(
+    'SELECT id FROM participant_orders WHERE meal_session_id = ? AND participant_user_id = ?',
+    [mealId, userId],
+  );
+  if (!existing) throw new HttpError(404, 'not_found', 'You have no order in this meal');
+  await deleteOrder(mealId, String(existing.id));
+}
+
 /** Grouped views for Screen 6. */
 export async function orderSummary(
   mealId: string,
