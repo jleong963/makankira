@@ -426,6 +426,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notifications => '通知';
 
   @override
+  String get darkMode => '深色模式';
+
+  @override
   String get addPaymentMethod => '添加方式';
 
   @override

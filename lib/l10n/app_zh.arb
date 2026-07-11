@@ -139,6 +139,7 @@
   "email": "电子邮件",
   "paymentDefaults": "默认收款方式",
   "notifications": "通知",
+  "darkMode": "深色模式",
   "addPaymentMethod": "添加方式",
   "methodType": "类型",
   "methodBank": "银行账户",

@@ -934,6 +934,12 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get notifications;
 
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get darkMode;
+
   /// No description provided for @addPaymentMethod.
   ///
   /// In en, this message translates to:

@@ -431,6 +431,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get notifications => 'Pemberitahuan';
 
   @override
+  String get darkMode => 'Mod gelap';
+
+  @override
   String get addPaymentMethod => 'Tambah kaedah';
 
   @override

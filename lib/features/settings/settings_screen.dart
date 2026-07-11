@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
+import 'theme_controller.dart';
 
 /// Settings hub (Screens 2B–2D).
 class SettingsScreen extends ConsumerWidget {
@@ -10,6 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
     return Scaffold(
       appBar: AppBar(title: Text(l.settings)),
       body: ListView(
@@ -31,6 +33,13 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(l.notifications),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/notifications'),
+          ),
+          const Divider(),
+          SwitchListTile(
+            secondary: Icon(isDark ? Icons.dark_mode : Icons.light_mode_outlined),
+            title: Text(l.darkMode),
+            value: isDark,
+            onChanged: (v) => ref.read(themeModeProvider.notifier).setDark(v),
           ),
         ],
       ),

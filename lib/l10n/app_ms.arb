@@ -139,6 +139,7 @@
   "email": "E-mel",
   "paymentDefaults": "Kaedah bayaran lalai",
   "notifications": "Pemberitahuan",
+  "darkMode": "Mod gelap",
   "addPaymentMethod": "Tambah kaedah",
   "methodType": "Jenis",
   "methodBank": "Akaun bank",

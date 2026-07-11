@@ -139,6 +139,7 @@
   "email": "Email",
   "paymentDefaults": "Payment defaults",
   "notifications": "Notifications",
+  "darkMode": "Dark mode",
   "addPaymentMethod": "Add method",
   "methodType": "Type",
   "methodBank": "Bank account",

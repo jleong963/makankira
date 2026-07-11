@@ -12,6 +12,76 @@ import { buildRequests } from './paymentRequests.js';
 
 const rm = (cents: unknown): number => Number(cents ?? 0) / 100;
 
+/** Plain-text length of a cell value (handles rich text / formula results). */
+function cellText(v: ExcelJS.CellValue): string {
+  if (v == null) return '';
+  if (typeof v === 'object') {
+    const o = v as { text?: unknown; result?: unknown; richText?: { text?: unknown }[] };
+    if (Array.isArray(o.richText)) return o.richText.map((r) => String(r.text ?? '')).join('');
+    if (o.text != null) return String(o.text);
+    if (o.result != null) return String(o.result);
+    return '';
+  }
+  return String(v);
+}
+
+/**
+ * Make a worksheet readable: auto column widths from content, wrapped cells with
+ * auto row heights, a styled + frozen header row, RM formatting for money
+ * columns, and light borders. Styling only — never touches cell values, so the
+ * value-based tests and the menu re-importer are unaffected.
+ */
+function finishSheet(
+  ws: ExcelJS.Worksheet,
+  opts: { header?: boolean; boldFirstCol?: boolean; moneyCols?: number[] } = {},
+): void {
+  const { header = true, boldFirstCol = false, moneyCols = [] } = opts;
+  const MIN = 10;
+  const MAX = 60; // long text (remarks, messages) wraps instead of stretching
+  const PAD = 2;
+  const money = new Set(moneyCols);
+
+  // Column widths sized to the longest line in each column, plus wrap + money fmt.
+  for (let c = 1; c <= ws.columnCount; c++) {
+    const col = ws.getColumn(c);
+    let width = MIN;
+    col.eachCell({ includeEmpty: false }, (cell) => {
+      const longest = cellText(cell.value).split('\n').reduce((m, s) => Math.max(m, s.length), 0);
+      width = Math.max(width, longest + PAD);
+    });
+    col.width = Math.min(width, MAX);
+    col.alignment = { vertical: 'top', wrapText: true };
+    if (money.has(c)) col.numFmt = '"RM" #,##0.00';
+  }
+
+  if (header) {
+    const hr = ws.getRow(1);
+    hr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hr.eachCell({ includeEmpty: false }, (cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B5E20' } };
+      cell.alignment = { vertical: 'middle', wrapText: true };
+    });
+    ws.views = [{ state: 'frozen', ySplit: 1 }]; // keep headers visible when scrolling
+  }
+
+  if (boldFirstCol) ws.getColumn(1).font = { bold: true };
+
+  // Estimate wrapped-line count per row for auto height, and add light borders.
+  const thin = { style: 'thin' as const, color: { argb: 'FFDDDDDD' } };
+  ws.eachRow({ includeEmpty: false }, (row) => {
+    let lines = 1;
+    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+      const w = Math.max(1, (ws.getColumn(colNumber).width ?? MIN) - PAD);
+      const cellLines = cellText(cell.value)
+        .split('\n')
+        .reduce((n, seg) => n + Math.max(1, Math.ceil(seg.length / w)), 0);
+      lines = Math.max(lines, cellLines);
+      cell.border = { top: thin, left: thin, bottom: thin, right: thin };
+    });
+    row.height = Math.min(Math.max(18, lines * 15), 160);
+  });
+}
+
 async function loadMeal(mealId: string) {
   const meal = await queryOne('SELECT * FROM meal_sessions WHERE id = ?', [mealId]);
   if (!meal) throw new HttpError(404, 'not_found', 'Meal session not found');
@@ -73,6 +143,10 @@ export async function buildRestaurantOrderWorkbook(mealId: string, locale: strin
     ]);
   }
 
+  finishSheet(info, { header: false, boldFirstCol: true });
+  finishSheet(rs);
+  finishSheet(io);
+  finishSheet(mr, { moneyCols: [4, 5] });
   return toBuffer(wb);
 }
 
@@ -140,6 +214,11 @@ export async function buildPaymentCalculationWorkbook(mealId: string, locale: st
     msg.addRow([req.participantName, req.mobileNumber, rm(req.totalDueCents), req.paymentReference, req.message]);
   }
 
+  finishSheet(ps, { moneyCols: [3, 4, 5, 6, 7, 9, 10, 11] });
+  finishSheet(pd, { moneyCols: [4, 5] });
+  finishSheet(ip, { moneyCols: [3] });
+  finishSheet(adj, { header: false, boldFirstCol: true, moneyCols: [2] });
+  finishSheet(msg, { moneyCols: [3] });
   return toBuffer(wb);
 }
 
@@ -165,5 +244,6 @@ export async function buildMenuTemplateWorkbook(): Promise<Buffer> {
   const ws = wb.addWorksheet('Menu');
   ws.addRow(['item_code', 'item_name', 'category', 'description', 'estimated_price', 'menu_url', 'image_url', 'available']);
   ws.addRow(['A01', 'Chicken Rice', 'Main', 'Roasted chicken with rice', 9.5, '', '', 'Yes']);
+  finishSheet(ws);
   return toBuffer(wb);
 }

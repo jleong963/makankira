@@ -433,6 +433,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
+  String get darkMode => 'Dark mode';
+
+  @override
   String get addPaymentMethod => 'Add method';
 
   @override
