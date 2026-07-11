@@ -81,7 +81,6 @@ const frontendOut = {
   SUPPORTED_LOCALES: (app.supportedLocales ?? ['en']).join(','),
   API_BASE_URL: String(frontend.apiBaseUrl ?? '/api'),
   GOOGLE_OAUTH_CLIENT_ID: String(frontend.googleOAuthClientId ?? ''),
-  FACEBOOK_APP_ID: String(frontend.facebookAppId ?? ''),
   VAPID_PUBLIC_KEY: String(frontend.vapidPublicKey ?? ''),
 };
 const frontendPath = resolve(CONFIG_DIR, `frontend.${profile}.json`);
@@ -93,8 +92,6 @@ const backendEnv = {
   TURSO_DATABASE_URL: backend.tursoDatabaseUrl ?? '',
   TURSO_AUTH_TOKEN: backend.tursoAuthToken ?? '',
   GOOGLE_OAUTH_CLIENT_ID: frontend.googleOAuthClientId ?? '',
-  FACEBOOK_APP_ID: frontend.facebookAppId ?? '',
-  FACEBOOK_APP_SECRET: backend.facebookAppSecret ?? '',
   SESSION_SECRET: backend.sessionSecret ?? '',
   BLOB_READ_WRITE_TOKEN: backend.fileStorageToken ?? '',
   RESEND_API_KEY: backend.resendApiKey ?? '',

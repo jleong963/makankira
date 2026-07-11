@@ -22,9 +22,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithGoogle => 'Continue with Google';
 
   @override
-  String get continueWithFacebook => 'Continue with Facebook';
-
-  @override
   String get signOut => 'Sign out';
 
   @override

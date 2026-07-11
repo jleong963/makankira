@@ -1,12 +1,12 @@
 /**
  * auth.ts — first-party session auth for the Flutter-web SPA.
  *
- * Flow: the client obtains a Google ID token or Facebook access token and POSTs
- * it to /api/auth/login. The server VERIFIES it (Google JWKS with issuer +
- * audience checks; Facebook debug_token), upserts the user, and issues a signed
- * session JWT in an HttpOnly cookie. Other endpoints read that cookie.
+ * Flow: the client obtains a Google ID token and POSTs it to /api/auth/login.
+ * The server VERIFIES it (Google JWKS with issuer + audience checks), upserts
+ * the user, and issues a signed session JWT in an HttpOnly cookie. Other
+ * endpoints read that cookie.
  *
- * Only Google and Facebook are supported (README Section 11).
+ * Only Google is supported (README Section 11).
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -76,7 +76,7 @@ export function clearSessionCookie(res: VercelResponse): void {
 // ---- Provider verification -----------------------------------------------
 
 export interface VerifiedProfile {
-  provider: 'google' | 'facebook';
+  provider: 'google';
   providerUserId: string;
   email?: string;
   displayName?: string;
@@ -113,50 +113,10 @@ async function verifyGoogle(credential: string): Promise<VerifiedProfile> {
   };
 }
 
-interface FbDebug {
-  data?: { is_valid?: boolean; app_id?: string | number };
-}
-interface FbProfile {
-  id?: string;
-  name?: string;
-  email?: string;
-  picture?: { data?: { url?: string } };
-}
-
-async function verifyFacebook(credential: string): Promise<VerifiedProfile> {
-  const appId = env('FACEBOOK_APP_ID');
-  const appSecret = env('FACEBOOK_APP_SECRET');
-  const appToken = `${appId}|${appSecret}`;
-  const tok = encodeURIComponent(credential);
-
-  const debug = (await (
-    await fetch(
-      `https://graph.facebook.com/debug_token?input_token=${tok}&access_token=${encodeURIComponent(appToken)}`,
-    )
-  ).json()) as FbDebug;
-  if (!debug.data?.is_valid || String(debug.data.app_id) !== appId) {
-    throw new HttpError(401, 'invalid_credential', 'Facebook token is not valid for this app');
-  }
-
-  const me = (await (
-    await fetch(`https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${tok}`)
-  ).json()) as FbProfile;
-  if (!me.id) throw new HttpError(401, 'invalid_credential', 'Facebook profile unavailable');
-
-  return {
-    provider: 'facebook',
-    providerUserId: String(me.id),
-    email: typeof me.email === 'string' ? me.email : undefined,
-    displayName: typeof me.name === 'string' ? me.name : undefined,
-    photoUrl: me.picture?.data?.url,
-  };
-}
-
 export async function verifyProvider(provider: string, credential: string): Promise<VerifiedProfile> {
   if (!credential) throw new HttpError(400, 'missing_credential', 'credential is required');
   if (provider === 'google') return verifyGoogle(credential);
-  if (provider === 'facebook') return verifyFacebook(credential);
-  throw new HttpError(400, 'unsupported_provider', 'Only google and facebook are supported');
+  throw new HttpError(400, 'unsupported_provider', 'Only google is supported');
 }
 
 // ---- User upsert + session lookup ----------------------------------------

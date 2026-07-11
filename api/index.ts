@@ -105,7 +105,7 @@ const routes: Route[] = [
   route('GET', 'config', async (_req, res) => {
     sendJson(res, 200, {
       appName: 'MakanKira',
-      providers: ['google', 'facebook'],
+      providers: ['google'],
       defaultLocale: 'en',
       supportedLocales: ['en', 'zh', 'ms'],
     });

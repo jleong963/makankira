@@ -6,13 +6,11 @@
 frontend:                                  # PUBLIC values compiled into the web app
   apiBaseUrl: "http://localhost:3000/api"  # dev API runs on a separate port
   googleOAuthClientId: ${GOOGLE_OAUTH_CLIENT_ID}
-  facebookAppId: ${FACEBOOK_APP_ID}
   vapidPublicKey: ${VAPID_PUBLIC_KEY}      # Web Push public key (safe to ship)
 
 backend:                                   # SECRET values, server-side only
   tursoDatabaseUrl: ${TURSO_DATABASE_URL}
   tursoAuthToken: ${TURSO_AUTH_TOKEN}
-  facebookAppSecret: ${FACEBOOK_APP_SECRET}
   sessionSecret: ${SESSION_SECRET}
   fileStorageToken: ${BLOB_READ_WRITE_TOKEN}        # Vercel Blob token (QR/menu images)
   resendApiKey: ${RESEND_API_KEY}                   # transactional email (order reminders)

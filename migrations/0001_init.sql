@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 -- users
 CREATE TABLE users (
   id                 TEXT PRIMARY KEY,
-  auth_provider      TEXT NOT NULL CHECK (auth_provider IN ('google','facebook')),
+  auth_provider      TEXT NOT NULL CHECK (auth_provider IN ('google')),
   provider_user_id   TEXT NOT NULL,
   email              TEXT,
   display_name       TEXT,

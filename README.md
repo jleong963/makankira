@@ -76,16 +76,14 @@ The landing page should not behave like a marketing page. It should be a focused
 - App name: `MakanKira`.
 - Short purpose statement.
 - Language selector (English, Chinese, Malay) so the user can switch the app language before logging in. English remains the default.
-- Primary `Continue with Google` button.
-- Secondary `Continue with Facebook` button.
+- `Continue with Google` button.
 - Optional terms/privacy links.
 
-Only these login methods should be offered:
+Only this login method should be offered:
 
 - Google.
-- Facebook.
 
-Email/password, magic link, phone number, GitHub, and other login methods should not be shown.
+Email/password, magic link, phone number, GitHub, Facebook, and other login methods should not be shown.
 
 After successful login:
 
@@ -556,8 +554,7 @@ Purpose: authenticate the user before they access the app.
 Default behavior:
 
 - Show Google authentication immediately when the app loads.
-- Use Google sign-in as the primary/default login method.
-- Offer Facebook as a secondary login method.
+- Use Google sign-in as the login method.
 - Do not offer any other login methods.
 - Redirect authenticated users to the meal sessions dashboard.
 - Redirect unauthenticated users back to the login screen when they try to access protected pages.
@@ -565,7 +562,6 @@ Default behavior:
 Key features:
 
 - `Continue with Google` button.
-- `Continue with Facebook` button.
 - `MakanKira` app name and concise description.
 - Language selector (English, Chinese, Malay) so the user can switch language before signing in, with the choice saved as a local preference and applied immediately.
 - Loading state while checking existing login session.
@@ -636,7 +632,7 @@ Purpose: let the signed-in user maintain the personal details that pre-fill form
 
 Features:
 
-- Edit **display name** (defaults to the name from Google/Facebook; the user can override it).
+- Edit **display name** (defaults to the name from Google; the user can override it).
 - Enter / edit **mobile number** (Malaysian formats; used for WhatsApp/contact links and for prefill).
 - Email and profile photo are shown read-only from the login provider.
 - These values are the source for auto-prefill: the organizer's name and contact on Meal Setup (Screen 3), and the participant's name and mobile on the Order Form (Screen 5).
@@ -1022,8 +1018,8 @@ All participants have paid or the organizer manually closes the session.
 
 ### Authentication
 
-- User must be signed in with Google or Facebook before accessing organizer screens.
-- Google and Facebook are the only allowed login methods.
+- User must be signed in with Google before accessing organizer screens.
+- Google is the only allowed login method.
 - No other authentication methods are allowed.
 - User profile identifier must be available from the selected auth provider.
 - Meal sessions must be linked to the authenticated user.
@@ -1084,12 +1080,11 @@ All participants have paid or the organizer manually closes the session.
 
 ## 12. MVP Scope
 
-The first version should include Google and Facebook authentication with a simple organizer workflow.
+The first version should include Google authentication with a simple organizer workflow.
 
 Included:
 
-- Google login as the default landing page action.
-- Facebook as a standard secondary login method.
+- Google login as the landing page action.
 - Authenticated meal sessions owned by the signed-in user.
 - Language switching from the landing page and after login, with English default plus Chinese and Malay support.
 - Create one meal session.
@@ -1161,9 +1156,8 @@ Add admin tooling or translation files for more languages, region-specific termi
 
 - Flutter web.
 - Dart.
-- Google authentication as the default login method.
-- Facebook as a secondary login method.
-- Authentication implemented in-app with **server-side token verification** in the `/api` layer (Section 15): the browser obtains a Google ID token or Facebook access token client-side and POSTs it to `POST /api/auth/login`, which verifies it server-side (Google JWKS with issuer/audience checks via `jose`; Facebook Graph `debug_token`), upserts the user, and issues a signed **httpOnly session cookie**. No provider secret reaches the browser. (This replaces the earlier Auth.js plan, which suits a server-rendered framework more than a Flutter SPA.)
+- Google authentication as the login method.
+- Authentication implemented in-app with **server-side token verification** in the `/api` layer (Section 15): the browser obtains a Google ID token client-side and POSTs it to `POST /api/auth/login`, which verifies it server-side (Google JWKS with issuer/audience checks via `jose`), upserts the user, and issues a signed **httpOnly session cookie**. No provider secret reaches the browser. (This replaces the earlier Auth.js plan, which suits a server-rendered framework more than a Flutter SPA.)
 - Flutter localization using `flutter_localizations`, `intl`, and ARB translation files.
 - Turso database for persistent app data.
 - Excel import parsing and export generation run in the `/api` (TypeScript) layer (for example `exceljs`), not in Flutter. The Flutter UI only picks/uploads the source file and downloads the generated workbook.
@@ -1212,7 +1206,7 @@ The first release targets **web only**, and it should feel app-like on phones. S
 
 Recommended Flutter structure:
 
-- `lib/features/auth` for Google and Facebook login and session handling.
+- `lib/features/auth` for Google login and session handling.
 - `lib/features/meals` for meal sessions.
 - `lib/features/menu` for menu import and management.
 - `lib/features/orders` for participant order entry.
@@ -1244,7 +1238,7 @@ The first build should use English source keys and provide translated strings fo
 
 - API layer co-located in the same Vercel app as the Flutter web UI (one repo, one project, one domain), implemented as TypeScript serverless functions under `/api`. It is the only layer that holds secrets and accesses Turso.
 - Turso/libSQL database access.
-- Social auth token verification for Google and Facebook.
+- Social auth token verification for Google.
 - Authorization checks for user-owned meal sessions.
 - (Future, build Phase 4) Public participant order links — not in the MVP, per the Section 19 decisions.
 - Cloud file export.
@@ -1253,7 +1247,7 @@ The first build should use English source keys and provide translated strings fo
 
 ### Why Start With Authentication
 
-The app should begin with social authentication because meal sessions contain personal names, payment details, and order history. Google should be the default login method, with Facebook also available. Signing in also allows future sessions to be tied to the organizer instead of being treated as temporary browser data.
+The app should begin with social authentication because meal sessions contain personal names, payment details, and order history. Google is the login method. Signing in also allows future sessions to be tied to the organizer instead of being treated as temporary browser data.
 
 ### Why Keep the First Build Simple
 
@@ -1344,12 +1338,10 @@ Per-profile file, using literal values for non-secrets and `${...}` placeholders
 frontend:                                  # PUBLIC values compiled into the web app
   apiBaseUrl: "http://localhost:3000/api"
   googleOAuthClientId: ${GOOGLE_OAUTH_CLIENT_ID}
-  facebookAppId: ${FACEBOOK_APP_ID}
   vapidPublicKey: ${VAPID_PUBLIC_KEY}        # Web Push public key (safe to ship)
 backend:                                   # SECRET values, server-side only
   tursoDatabaseUrl: ${TURSO_DATABASE_URL}
   tursoAuthToken: ${TURSO_AUTH_TOKEN}
-  facebookAppSecret: ${FACEBOOK_APP_SECRET}
   sessionSecret: ${SESSION_SECRET}
   fileStorageToken: ${BLOB_READ_WRITE_TOKEN}   # Vercel Blob token for QR/menu images
   resendApiKey: ${RESEND_API_KEY}              # transactional email (order reminders)
@@ -1372,10 +1364,8 @@ backend:                                   # SECRET values, server-side only
 | --- | --- | --- | --- | --- |
 | `apiBaseUrl` | Frontend | No | `app-config.local.yaml` | per-profile file |
 | `googleOAuthClientId` | Frontend | No (public) | `secrets.local` | GitHub secret |
-| `facebookAppId` | Frontend | No (public) | `secrets.local` | GitHub secret |
 | `tursoDatabaseUrl` | Backend | Yes | `secrets.local` | GitHub secret to Vercel env |
 | `tursoAuthToken` | Backend | Yes | `secrets.local` | GitHub secret to Vercel env |
-| `facebookAppSecret` | Backend | Yes | `secrets.local` | GitHub secret to Vercel env |
 | `sessionSecret` | Backend | Yes | `secrets.local` | GitHub secret to Vercel env |
 | `fileStorageToken` (QR/menu images) | Backend | Yes | `secrets.local` | GitHub secret to Vercel env |
 | `vapidPublicKey` | Frontend | No (public) | `secrets.local` | GitHub secret |
@@ -1392,7 +1382,7 @@ This is the only place a developer edits for local runs:
 
 2. Edit **`config/app-config.local.yaml`** for non-secret local values (for example, point `apiBaseUrl` at your local API).
 
-3. Copy **`config/secrets.local.example` to `config/secrets.local`** and fill in your own development secrets (your own Turso dev database token and your own Google and Facebook (Meta) developer-app credentials). **`config/secrets.local` is git-ignored — never commit it.**
+3. Copy **`config/secrets.local.example` to `config/secrets.local`** and fill in your own development secrets (your own Turso dev database token and your own Google developer-app credentials). **`config/secrets.local` is git-ignored — never commit it.**
 
 `.gitignore` must include:
 
@@ -1414,7 +1404,7 @@ Prerequisites:
 - Flutter SDK with web support enabled (`flutter config --enable-web`).
 - Node.js (for the API layer and the Vercel CLI).
 - A Turso development database (URL + auth token).
-- Your own OAuth development credentials for Google and Facebook.
+- Your own OAuth development credentials for Google.
 
 Steps:
 
@@ -1462,7 +1452,6 @@ Required GitHub repository secrets:
 # App - backend (secret, runtime)
 TURSO_DATABASE_URL
 TURSO_AUTH_TOKEN
-FACEBOOK_APP_SECRET
 SESSION_SECRET
 BLOB_READ_WRITE_TOKEN            # Vercel Blob storage token
 RESEND_API_KEY                   # transactional email (order reminders)
@@ -1472,7 +1461,6 @@ CRON_SECRET                      # protects the reminder cron endpoint
 
 # App - frontend (public IDs, still centralized as secrets)
 GOOGLE_OAUTH_CLIENT_ID
-FACEBOOK_APP_ID
 VAPID_PUBLIC_KEY                 # Web Push public key
 
 # Vercel deployment
@@ -1497,12 +1485,10 @@ jobs:
       APP_PROFILE: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
       # public (frontend build) values
       GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
-      FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
       VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
       # secret (backend) values
       TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
       TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
@@ -1622,7 +1608,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 -- users
 CREATE TABLE users (
   id                 TEXT PRIMARY KEY,
-  auth_provider      TEXT NOT NULL CHECK (auth_provider IN ('google','facebook')),
+  auth_provider      TEXT NOT NULL CHECK (auth_provider IN ('google')),
   provider_user_id   TEXT NOT NULL,
   email              TEXT,
   display_name       TEXT,
@@ -1893,7 +1879,7 @@ All endpoints live under `/api` in the same Vercel app (Section 15) and exchange
 | GET | `/api/auth/me` | User | Current user; used for the login-session loading state (Screens 1, 2) |
 | PATCH | `/api/me` | User | Update profile: `displayName`, `mobileNumber`, `preferredLanguage` (Screens 2A, 2D) |
 
-Note: authentication uses **server-side token verification** (not Auth.js). The browser obtains a Google ID token / Facebook access token client-side and calls `POST /api/auth/login`; the server verifies it (Google JWKS + issuer/audience via `jose`; Facebook Graph `debug_token`), upserts the user, and sets a signed httpOnly session cookie. `POST /api/auth/logout` clears it, and `GET /api/auth/me` returns the current user (or `{ "user": null }` when signed out, for the login-loading state).
+Note: authentication uses **server-side token verification** (not Auth.js). The browser obtains a Google ID token client-side and calls `POST /api/auth/login`; the server verifies it (Google JWKS + issuer/audience via `jose`), upserts the user, and sets a signed httpOnly session cookie. `POST /api/auth/logout` clears it, and `GET /api/auth/me` returns the current user (or `{ "user": null }` when signed out, for the login-loading state).
 
 ### Profile Payment Defaults
 
@@ -2051,7 +2037,7 @@ POST /api/meals/meal_001/calculate
 
 1. On the landing page, the organizer changes the language if they do not want to use the default English interface.
 
-2. Organizer signs in with Google or Facebook.
+2. Organizer signs in with Google.
 
 3. Organizer creates `Friday Team Lunch` and marks it as a farewell meal.
 
@@ -2120,7 +2106,7 @@ POST /api/meals/meal_001/calculate
 | 6 | DuitNow QR | Optional; at least one receiving method is required (bank / DuitNow ID / QR). |
 | 7 | Multiple restaurants | No; one restaurant per session for MVP. |
 | 8 | Participant sign-in | Not required for MVP (owner-authenticated, same device); guest links are future. |
-| 9 | Auth implementation | In-app **server-side token verification** in the `/api` layer: the client gets a Google ID token / Facebook access token and POSTs it to `/api/auth/login`, which verifies it (Google JWKS + issuer/audience via `jose`; Facebook Graph `debug_token`), upserts the user, and sets a signed httpOnly session cookie. Google and Facebook only (both free). (Chosen over Auth.js, which suits server-rendered frameworks more than a Flutter SPA; Instagram and Apple Sign In remain out of scope — Apple needs a paid account.) |
+| 9 | Auth implementation | In-app **server-side token verification** in the `/api` layer: the client gets a Google ID token and POSTs it to `/api/auth/login`, which verifies it (Google JWKS + issuer/audience via `jose`), upserts the user, and sets a signed httpOnly session cookie. Google only (free). (Chosen over Auth.js, which suits server-rendered frameworks more than a Flutter SPA; Facebook, Instagram, and Apple Sign In remain out of scope — Apple needs a paid account.) |
 | 10 | Platform | **Web only**. Installable, app-like **PWA on Android and desktop**; on **iOS, a responsive in-browser web app** (no iOS PWA / home-screen install), including in-app browsers such as WhatsApp. Native Android/iOS builds remain a future option on the same codebase. |
 | 11 | Company claim scope | Full bill by default; category- or participant-scoped claims use the manual path (future). |
 | 12 | Finance claim export | MVP: claim figures live in the payment Excel "Adjustments" tab; a dedicated finance claim export is a future enhancement. |
@@ -2131,7 +2117,7 @@ POST /api/meals/meal_001/calculate
 
 ### Original Questions (for reference)
 
-These are the original questions, kept verbatim for reference. Note: Instagram login, Apple Sign In, and iOS PWA appear in some of the wording below but were later removed from scope; the decision table above is authoritative.
+These are the original questions, kept verbatim for reference. Note: Facebook login, Instagram login, Apple Sign In, and iOS PWA appear in some of the wording below but were later removed from scope; the decision table above is authoritative.
 
 1. Should participants submit orders from their own devices, or is same-device entry acceptable for MVP?
 
@@ -2171,7 +2157,7 @@ These build phases describe delivery order and are separate from the workflow ph
 
 ### Phase 1: Prototype
 
-- Social login landing page with Google and Facebook.
+- Social login landing page with Google.
 - Flutter web app foundation.
 - Backend API foundation with Turso connection.
 - GitHub to Vercel CI/CD pipeline with profile-based configuration (local, staging, production); see Section 15.
@@ -2225,12 +2211,11 @@ This is the one-time, day-0 setup the **project owner** performs to obtain the c
 
 Public (frontend) values are still stored as secrets for convenience but get compiled into the browser bundle, so treat them as non-sensitive. The three Vercel deploy values (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`) live in **GitHub secrets only** — they are used by the deploy workflow, not by the running app.
 
-### Authorized origins / domains (needed by Google and Facebook)
+### Authorized origins / domains (needed by Google)
 
 Because login uses client-side sign-in + server-side token verification (not a redirect callback), you register **origins / domains**, not `/api/auth/callback/...` URLs:
 
 - **Google** — in the OAuth client, add **Authorized JavaScript origins** for each environment: `http://localhost:3000` (local), your `https://<preview>.vercel.app`, and your production origin. No redirect URI is required for the ID-token flow.
-- **Facebook** — under Facebook Login settings, add the app domains / **Allowed Domains for the JavaScript SDK**: `localhost`, your preview host, and your production host.
 
 Vercel preview URLs change per deployment, so for previews use a stable alias. Each value must match the origin the app is served from.
 
@@ -2244,17 +2229,7 @@ Vercel preview URLs change per deployment, so for previews use a stable alias. E
 
 Yields: `GOOGLE_OAUTH_CLIENT_ID` (public).
 
-### 2. Facebook Login (free)
-
-1. In **Meta for Developers**, create an app (type: Consumer).
-2. Add the **Facebook Login** product.
-3. Under **Facebook Login > Settings**, add the Valid OAuth Redirect URIs above.
-4. Request the `email` permission (works for app admins/testers immediately; submit for **App Review** before public launch).
-5. From **App settings > Basic**, copy the App ID and App Secret.
-
-Yields: `FACEBOOK_APP_ID` (public), `FACEBOOK_APP_SECRET` (secret).
-
-### 3. Turso database (free)
+### 2. Turso database (free)
 
 1. Sign up at **Turso** and install the Turso CLI.
 2. Create two databases, e.g. `makankira-dev` and `makankira-prod`.
@@ -2262,17 +2237,17 @@ Yields: `FACEBOOK_APP_ID` (public), `FACEBOOK_APP_SECRET` (secret).
 
 Yields: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (secret). Use the dev DB locally, the prod DB in production.
 
-### 4. Vercel project + Blob storage (free)
+### 3. Vercel project + Blob storage (free)
 
 1. Create a **Vercel** account and import the GitHub repo as a project (or run `vercel link`).
 2. **Account Settings > Tokens**: create a token for CI — `VERCEL_TOKEN`.
 3. Get `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` from `vercel link` output or `.vercel/project.json`.
 4. **Storage > create a Blob store**, connect it to the project, copy `BLOB_READ_WRITE_TOKEN`.
-5. No Vercel Cron is used (its sub-daily schedules need a paid plan); the reminder schedule runs as a free GitHub Actions workflow instead — see step 8.
+5. No Vercel Cron is used (its sub-daily schedules need a paid plan); the reminder schedule runs as a free GitHub Actions workflow instead — see step 7.
 
 Yields: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `BLOB_READ_WRITE_TOKEN`.
 
-### 5. Resend email (free)
+### 4. Resend email (free)
 
 1. Sign up at **Resend**.
 2. Add and **verify a sending domain** (add the DNS records they provide); for dev you can use their test domain.
@@ -2281,7 +2256,7 @@ Yields: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `BLOB_READ_WRITE_T
 
 Yields: `RESEND_API_KEY` (secret) and `RESEND_FROM` (the from-address on your verified domain — required for reminder emails to actually send; falls back to a default otherwise). Free tier ~3,000 emails/month.
 
-### 6. Web Push VAPID keys (free)
+### 5. Web Push VAPID keys (free)
 
 1. Run `npx web-push generate-vapid-keys` once.
 2. Public key → `VAPID_PUBLIC_KEY` (frontend); private key → `VAPID_PRIVATE_KEY` (secret).
@@ -2289,35 +2264,33 @@ Yields: `RESEND_API_KEY` (secret) and `RESEND_FROM` (the from-address on your ve
 
 Yields: `VAPID_PUBLIC_KEY` (public), `VAPID_PRIVATE_KEY` (secret).
 
-### 7. Application secrets (free, self-generated)
+### 6. Application secrets (free, self-generated)
 
 Generate two random 32-byte strings, for example `openssl rand -base64 32` (or `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`):
 
 - `SESSION_SECRET` — signs the login session cookie.
 - `CRON_SECRET` — authenticates the reminder cron endpoint.
 
-### 8. Reminder schedule (free, GitHub Actions)
+### 7. Reminder schedule (free, GitHub Actions)
 
 1. The repo includes `.github/workflows/reminders.yml` (Section 15); it runs on a schedule and `curl`s `POST /api/cron/reminders`.
 2. Add a GitHub Actions **variable** (not a secret) `APP_BASE_URL` under **Settings > Secrets and variables > Actions > Variables**, set to your production origin, e.g. `https://makankira.vercel.app`.
-3. It reuses `CRON_SECRET` (step 7) as the bearer token — no new secret needed.
+3. It reuses `CRON_SECRET` (step 6) as the bearer token — no new secret needed.
 
 Yields: an `APP_BASE_URL` Actions variable (non-secret). No paid plan required.
 
 ### Recommended order
 
 1. Turso dev DB + self-generated secrets — app runs locally against a database.
-2. Google + Facebook OAuth (local JS origins / app domains) — login works locally.
+2. Google OAuth (local JS origins) — login works locally.
 3. Resend + VAPID — reminders work.
-4. Vercel project + Blob + push all values into GitHub secrets — first deploy; then add the preview/production JS origins (Google) and app domains (Facebook).
+4. Vercel project + Blob + push all values into GitHub secrets — first deploy; then add the preview/production JS origins (Google).
 
 ### Secrets checklist
 
 | Value | Created in | Type | Free tier | Put in |
 | --- | --- | --- | --- | --- |
 | `GOOGLE_OAUTH_CLIENT_ID` | Google Cloud Console | Public | Yes | local, GitHub, Vercel |
-| `FACEBOOK_APP_ID` | Meta for Developers | Public | Yes | local, GitHub, Vercel |
-| `FACEBOOK_APP_SECRET` | Meta for Developers | Secret | Yes | local, GitHub, Vercel |
 | `TURSO_DATABASE_URL` | Turso | Secret | Yes | local, GitHub, Vercel |
 | `TURSO_AUTH_TOKEN` | Turso | Secret | Yes | local, GitHub, Vercel |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob | Secret | Yes | local, GitHub, Vercel |

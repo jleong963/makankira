@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/language_menu.dart';
-import 'auth_controller.dart';
 import 'google_redirect.dart';
 
-/// Screen 1 — social-login landing. Google is primary (full-page OAuth redirect,
-/// popup-free); Facebook is secondary.
+/// Screen 1 — social-login landing. Google sign-in uses a full-page OAuth
+/// redirect (popup-free).
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,21 +14,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  Future<void> _facebook() async {
-    final l = AppLocalizations.of(context);
-    try {
-      final result = await FacebookAuth.instance.login();
-      final token = result.accessToken;
-      if (result.status == LoginStatus.success && token != null) {
-        await ref.read(authProvider.notifier).signIn('facebook', token.tokenString);
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.loginError)));
-      }
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -61,12 +44,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: googleConfigured ? startGoogleSignIn : null,
                     icon: const Icon(Icons.login),
                     label: Text(l.continueWithGoogle),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _facebook,
-                    icon: const Icon(Icons.facebook),
-                    label: Text(l.continueWithFacebook),
                   ),
                   const SizedBox(height: 24),
                   Text(l.termsPrivacy, textAlign: TextAlign.center, style: text.bodySmall),
