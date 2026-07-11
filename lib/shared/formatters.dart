@@ -62,3 +62,13 @@ int? parseRMToCents(String s) {
   final v = double.tryParse(t);
   return v == null ? null : (v * 100).round();
 }
+
+/// Prefixes https:// when the user typed a bare host (e.g. "foo.com/menu"), so
+/// it opens as an absolute URL rather than being treated as a relative path.
+String ensureUrlScheme(String url) {
+  final u = url.trim();
+  if (u.isEmpty) return u;
+  final lower = u.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) return u;
+  return 'https://$u';
+}

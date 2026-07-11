@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../auth/auth_controller.dart';
+import '../meals/meals_controller.dart';
 import '../menu/menu_controller.dart';
 import 'orders_controller.dart';
 
@@ -153,6 +155,7 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final menu = ref.watch(menuListProvider(widget.mealId));
+    final menuUrl = ref.watch(mealDetailProvider(widget.mealId)).asData?.value.meal.menuUrl;
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? l.edit : l.addOrder)),
       body: menu.when(
@@ -168,6 +171,17 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    if (menuUrl != null && menuUrl.isNotEmpty) ...[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => openUrl(ensureUrlScheme(menuUrl)),
+                          icon: const Icon(Icons.open_in_new),
+                          label: Text(l.menuUrl),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     TextFormField(
                       controller: _name,
                       decoration: InputDecoration(labelText: l.participantName),

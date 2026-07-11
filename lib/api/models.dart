@@ -53,6 +53,7 @@ class MealSession {
   final String status;
   final bool reminderEnabled;
   final int reminderLeadMinutes;
+  final String? remindAt;
 
   MealSession({
     required this.id,
@@ -68,6 +69,7 @@ class MealSession {
     required this.status,
     required this.reminderEnabled,
     required this.reminderLeadMinutes,
+    this.remindAt,
   });
 
   factory MealSession.fromJson(Map<String, dynamic> j) => MealSession(
@@ -84,6 +86,7 @@ class MealSession {
         status: j['status'] as String? ?? 'draft',
         reminderEnabled: j['reminderEnabled'] as bool? ?? true,
         reminderLeadMinutes: (j['reminderLeadMinutes'] as num?)?.toInt() ?? 120,
+        remindAt: j['remindAt'] as String?,
       );
 }
 

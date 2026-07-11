@@ -25,6 +25,12 @@ class MealsController extends AsyncNotifier<List<MealSession>> {
     return meal;
   }
 
+  Future<void> updateMeal(String id, Map<String, dynamic> body) async {
+    await ref.read(apiClientProvider).patchJson('/meals/$id', body: body);
+    ref.invalidate(mealDetailProvider(id));
+    await refresh();
+  }
+
   Future<void> deleteMeal(String id) async {
     await ref.read(apiClientProvider).delete('/meals/$id');
     await refresh();

@@ -49,6 +49,7 @@ class MealDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final detail = ref.watch(mealDetailProvider(mealId));
+    final meal = detail.asData?.value.meal;
 
     return Scaffold(
       appBar: AppBar(
@@ -57,6 +58,12 @@ class MealDetailScreen extends ConsumerWidget {
           _ => l.mealSetup,
         }),
         actions: [
+          if (meal != null)
+            IconButton(
+              tooltip: l.edit,
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push('/meals/$mealId/edit', extra: meal),
+            ),
           IconButton(
             tooltip: l.delete,
             icon: const Icon(Icons.delete_outline),

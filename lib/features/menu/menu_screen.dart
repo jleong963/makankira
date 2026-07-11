@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
+import '../meals/meals_controller.dart';
 import 'menu_controller.dart';
 
 String _centsToInput(int? c) => c == null ? '' : (c / 100).toStringAsFixed(2);
@@ -49,8 +51,19 @@ class MenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final menu = ref.watch(menuListProvider(mealId));
+    final menuUrl = ref.watch(mealDetailProvider(mealId)).asData?.value.meal.menuUrl;
     return Scaffold(
-      appBar: AppBar(title: Text(l.menuManager)),
+      appBar: AppBar(
+        title: Text(l.menuManager),
+        actions: [
+          if (menuUrl != null && menuUrl.isNotEmpty)
+            IconButton(
+              tooltip: l.menuUrl,
+              icon: const Icon(Icons.open_in_new),
+              onPressed: () => openUrl(ensureUrlScheme(menuUrl)),
+            ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditor(context),
         icon: const Icon(Icons.add),

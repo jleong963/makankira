@@ -82,6 +82,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
       GoRoute(path: '/meals/new', builder: (context, state) => const MealSetupScreen()),
       GoRoute(
+        path: '/meals/:id/edit',
+        builder: (context, state) => MealSetupScreen(meal: state.extra as MealSession?),
+      ),
+      GoRoute(
         path: '/meals/:id',
         builder: (context, state) => MealDetailScreen(mealId: state.pathParameters['id']!),
       ),

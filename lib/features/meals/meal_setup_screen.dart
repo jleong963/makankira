@@ -7,9 +7,12 @@ import '../../shared/formatters.dart';
 import '../auth/auth_controller.dart';
 import 'meals_controller.dart';
 
-/// Screen 3 — create a meal session (edit reuses this later).
+/// Screen 3 — create or edit a meal session.
 class MealSetupScreen extends ConsumerStatefulWidget {
-  const MealSetupScreen({super.key});
+  const MealSetupScreen({super.key, this.meal});
+
+  /// When non-null, the form edits this meal instead of creating a new one.
+  final MealSession? meal;
 
   @override
   ConsumerState<MealSetupScreen> createState() => _MealSetupScreenState();
@@ -31,13 +34,31 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
   DateTime? _remindAt;
   bool _saving = false;
 
+  bool get _isEditing => widget.meal != null;
+
   @override
   void initState() {
     super.initState();
-    final auth = ref.read(authProvider);
-    final user = auth is AsyncData<AppUser?> ? auth.value : null;
-    _organizerName.text = user?.displayName ?? '';
-    _organizerContact.text = user?.mobileNumber ?? '';
+    final m = widget.meal;
+    if (m != null) {
+      // Edit mode: prefill every field from the existing meal.
+      _title.text = m.title;
+      _restaurant.text = m.restaurantName;
+      _menuUrl.text = m.menuUrl ?? '';
+      _seat.text = m.seatDetails ?? '';
+      _organizerName.text = m.organizerName ?? '';
+      _organizerContact.text = m.organizerContact ?? '';
+      _mealType = m.mealType;
+      _farewell = m.farewellEnabled;
+      _reminder = m.reminderEnabled;
+      _dateTime = m.mealDateTime != null ? DateTime.tryParse(m.mealDateTime!)?.toLocal() : null;
+      _remindAt = m.remindAt != null ? DateTime.tryParse(m.remindAt!)?.toLocal() : null;
+    } else {
+      final auth = ref.read(authProvider);
+      final user = auth is AsyncData<AppUser?> ? auth.value : null;
+      _organizerName.text = user?.displayName ?? '';
+      _organizerContact.text = user?.mobileNumber ?? '';
+    }
   }
 
   @override
@@ -115,24 +136,41 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
       return;
     }
     setState(() => _saving = true);
+    // In edit mode always send the optional text fields (even when blank) so the
+    // owner can clear them; on create, omit blanks to keep the payload tidy.
+    final editing = _isEditing;
     final body = <String, dynamic>{
       'title': _title.text.trim(),
       'restaurantName': _restaurant.text.trim(),
-      if (_mealType != null) 'mealType': _mealType,
+      if (editing || _mealType != null) 'mealType': _mealType,
       'farewellEnabled': _farewell,
-      if (_menuUrl.text.trim().isNotEmpty) 'menuUrl': _menuUrl.text.trim(),
-      if (_seat.text.trim().isNotEmpty) 'seatDetails': _seat.text.trim(),
-      if (_organizerName.text.trim().isNotEmpty) 'organizerName': _organizerName.text.trim(),
-      if (_organizerContact.text.trim().isNotEmpty) 'organizerContact': _organizerContact.text.trim(),
+      if (editing || _menuUrl.text.trim().isNotEmpty) 'menuUrl': _menuUrl.text.trim(),
+      if (editing || _seat.text.trim().isNotEmpty) 'seatDetails': _seat.text.trim(),
+      if (editing || _organizerName.text.trim().isNotEmpty) 'organizerName': _organizerName.text.trim(),
+      if (editing || _organizerContact.text.trim().isNotEmpty) 'organizerContact': _organizerContact.text.trim(),
       if (_dateTime != null) 'mealDateTime': _isoWithOffset(_dateTime!),
       'reminderEnabled': _reminder,
-      if (_reminder && _remindAt != null) 'remindAt': _isoWithOffset(_remindAt!),
+      // Only send a future remind_at. On edit this avoids a stale (already-past)
+      // prefill being rejected by the server and blocking unrelated changes; the
+      // backend keeps the existing reminder when remindAt is omitted.
+      if (_reminder && _remindAt != null && _remindAt!.isAfter(DateTime.now()))
+        'remindAt': _isoWithOffset(_remindAt!),
     };
     try {
-      final meal = await ref.read(mealsProvider.notifier).create(body);
+      final notifier = ref.read(mealsProvider.notifier);
+      final String mealId;
+      if (editing) {
+        await notifier.updateMeal(widget.meal!.id, body);
+        mealId = widget.meal!.id;
+      } else {
+        mealId = (await notifier.create(body)).id;
+      }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).mealCreated)));
-      context.go('/meals/${meal.id}');
+      final msg = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(editing ? msg.saved : msg.mealCreated)),
+      );
+      context.go('/meals/$mealId');
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
@@ -148,7 +186,7 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.mealSetup)),
+      appBar: AppBar(title: Text(_isEditing ? l.edit : l.mealSetup)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
@@ -229,7 +267,7 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
                   onPressed: _saving ? null : _submit,
                   child: _saving
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Text(l.create),
+                      : Text(_isEditing ? l.save : l.create),
                 ),
               ],
             ),
