@@ -53,6 +53,14 @@ class MealDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        // Detail can be reached via context.go (after create/edit) or a direct
+        // link, where there's nothing to pop — fall back to the meal listing so
+        // there's always a way back.
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
+        ),
         title: Text(switch (detail) {
           AsyncData(:final value) => value.meal.title,
           _ => l.mealSetup,

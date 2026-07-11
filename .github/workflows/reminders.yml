@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger reminder run
-        run: curl -fsS -X POST "$APP_BASE_URL/api/cron/reminders" -H "Authorization: Bearer $CRON_SECRET"
+        run: |
+          curl -fsS -X POST "$APP_BASE_URL/api/cron/reminders" -H "Authorization: Bearer $CRON_SECRET"
         env:
           APP_BASE_URL: ${{ vars.APP_BASE_URL }}     # non-secret Actions variable: production origin
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
