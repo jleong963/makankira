@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../app/brand.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
@@ -103,64 +104,108 @@ class MealDetailScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('${l.errorTitle}: $e')),
         data: (d) {
           final m = d.meal;
+          final text = Theme.of(context).textTheme;
+          final scheme = Theme.of(context).colorScheme;
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
             children: [
+              // Meal hero card.
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: Text(m.title, style: Theme.of(context).textTheme.titleLarge)),
-                          Chip(label: Text(statusLabel(l, m.status)), visualDensity: VisualDensity.compact),
+                          Expanded(child: Text(m.title, style: text.titleLarge)),
+                          const SizedBox(width: 8),
+                          StatusPill(status: m.status, label: statusLabel(l, m.status)),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      _infoRow(l.restaurant, m.restaurantName),
-                      _infoRow(l.mealDateTime, m.mealDateTime == null ? l.notSet : formatDateTime(m.mealDateTime)),
-                      if (m.seatDetails != null && m.seatDetails!.isNotEmpty) _infoRow(l.seat, m.seatDetails!),
-                      if (m.farewellEnabled) _infoRow(l.farewellMeal, '✓'),
+                      const SizedBox(height: 14),
+                      if (m.restaurantName.isNotEmpty)
+                        _InfoRow(icon: Icons.storefront_outlined, text: m.restaurantName),
+                      _InfoRow(
+                        icon: Icons.schedule_rounded,
+                        text: m.mealDateTime == null ? l.notSet : formatDateTime(m.mealDateTime),
+                      ),
+                      if (m.seatDetails != null && m.seatDetails!.isNotEmpty)
+                        _InfoRow(icon: Icons.event_seat_outlined, text: m.seatDetails!),
+                      if (m.farewellEnabled)
+                        _InfoRow(icon: Icons.celebration_outlined, text: l.farewellMeal, accent: MkColors.amberDark),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              // Payment methods.
+              _SectionHeader(label: l.paymentMethods),
               const SizedBox(height: 8),
-              Text(l.paymentMethods, style: Theme.of(context).textTheme.titleMedium),
               if (d.paymentMethods.isEmpty)
-                Padding(padding: const EdgeInsets.all(8), child: Text(l.noPaymentMethods))
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance_wallet_outlined, color: scheme.onSurfaceVariant, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(l.noPaymentMethods,
+                              style: TextStyle(color: scheme.onSurfaceVariant)),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               else
-                ...d.paymentMethods.map((pm) => ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.account_balance_wallet_outlined),
-                      title: Text(_methodLine(pm)),
-                    )),
-              const SizedBox(height: 16),
+                Card(
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < d.paymentMethods.length; i++) ...[
+                        if (i > 0) const Divider(height: 1, indent: 56),
+                        ListTile(
+                          leading: const Icon(Icons.account_balance_wallet_outlined),
+                          title: Text(_methodLine(d.paymentMethods[i])),
+                          dense: true,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20),
+              // Meal-flow sections.
+              _SectionHeader(label: l.mealSetup),
+              const SizedBox(height: 8),
               _SectionTile(
                 icon: Icons.restaurant_menu,
                 label: l.sectionMenu,
+                color: const Color(0xFF00B14F),
                 onTap: () => context.push('/meals/$mealId/menu'),
               ),
               _SectionTile(
                 icon: Icons.receipt_long,
                 label: l.sectionOrders,
+                color: const Color(0xFF2E7CF6),
                 onTap: () => context.push('/meals/$mealId/orders'),
               ),
               _SectionTile(
                 icon: Icons.checklist,
                 label: l.sectionReview,
+                color: const Color(0xFF009688),
                 onTap: () => context.push('/meals/$mealId/orders'),
               ),
               _SectionTile(
                 icon: Icons.calculate,
                 label: l.sectionBill,
+                color: const Color(0xFFEF9A00),
                 onTap: () => context.push('/meals/$mealId/bill'),
               ),
               _SectionTile(
                 icon: Icons.payments,
                 label: l.sectionPaymentRequests,
+                color: const Color(0xFF7C4DFF),
                 onTap: () => context.push('/meals/$mealId/payment-requests'),
               ),
             ],
@@ -169,34 +214,95 @@ class MealDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _infoRow(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))),
-            Expanded(child: Text(value)),
-          ],
-        ),
-      );
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 0.2,
+            ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.icon, required this.text, this.accent});
+  final IconData icon;
+  final String text;
+  final Color? accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 19, color: accent ?? scheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14.5,
+                color: accent ?? scheme.onSurface,
+                fontWeight: accent != null ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SectionTile extends StatelessWidget {
-  const _SectionTile({required this.icon, required this.label, this.onTap});
+  const _SectionTile({required this.icon, required this.label, required this.color, this.onTap});
   final IconData icon;
   final String label;
+  final Color color;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Card(
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.comingSoon))),
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        child: InkWell(
+          onTap: onTap ?? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.comingSoon))),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
+                Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -215,7 +321,7 @@ class _ShareSheet extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final token = ref.watch(mealDetailProvider(mealId)).asData?.value.meal.inviteToken;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -231,7 +337,7 @@ class _ShareSheet extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: SelectableText(_link(token)),
             ),

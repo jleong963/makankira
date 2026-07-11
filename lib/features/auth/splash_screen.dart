@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../app/brand.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Shown only while the session check (`/auth/me`) is in flight, so neither the
 /// dashboard nor the login form flashes before we know whether the user is
@@ -9,17 +11,44 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    final l = AppLocalizations.of(context);
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: MkColors.brandGradient),
+        child: Stack(
           children: [
-            Icon(Icons.ramen_dining, size: 64),
-            SizedBox(height: 24),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(strokeWidth: 3),
+            Positioned.fill(
+              child: CustomPaint(painter: FoodPatternPainter(opacity: 0.08)),
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const MakanKiraLogo(size: 104),
+                  const SizedBox(height: 28),
+                  const MakanKiraWordmark(fontSize: 40, onDark: true),
+                  const SizedBox(height: 10),
+                  Text(
+                    l.appTagline,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  const SizedBox(
+                    width: 26,
+                    height: 26,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.6,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

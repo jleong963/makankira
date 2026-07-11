@@ -18,22 +18,83 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="MakanKira — organize a shared meal, split the bill, and request payment.">
-  <meta name="theme-color" content="#EA6A12">
+  <meta name="description" content="MakanKira — the Malaysian way to organize a shared meal, kira the bill fairly, and collect payment over DuitNow.">
+  <meta name="theme-color" content="#00B14F">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MakanKira">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>MakanKira</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Branded splash shown instantly, before the Flutter engine boots, so the
+       first paint is on-brand green rather than a white flash. Removed on the
+       app's first frame. */
+    #mk-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #00C259 0%, #00B14F 45%, #00713A 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      transition: opacity .4s ease;
+    }
+    #mk-loading .mk-logo {
+      width: 88px; height: 88px; border-radius: 26px; position: relative;
+      background: linear-gradient(135deg, #14c866, #00944a);
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 46px; line-height: 1;
+    }
+    #mk-loading .mk-coin {
+      position: absolute; right: -6px; bottom: -6px;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #FFB020, #E08A00);
+      border: 3px solid #fff; color: #fff; font-weight: 700; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #mk-loading .mk-word { margin-top: 24px; font-size: 34px; font-weight: 700; letter-spacing: -.5px; }
+    #mk-loading .mk-word b { color: #fff; font-weight: 700; }
+    #mk-loading .mk-word span { color: #FFB020; }
+    #mk-loading .mk-spin {
+      margin-top: 34px; width: 26px; height: 26px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,.35); border-top-color: #fff;
+      animation: mk-rot 0.9s linear infinite;
+    }
+    @keyframes mk-rot { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
+  <div id="mk-loading">
+    <div class="mk-logo">🍜<div class="mk-coin">RM</div></div>
+    <div class="mk-word"><b>Makan</b><span>Kira</span></div>
+    <div class="mk-spin"></div>
+  </div>
+  <script>
+    // Fade out the branded splash once Flutter renders its first frame (with a
+    // safety timeout in case the event is missed).
+    (function () {
+      function hide() {
+        var el = document.getElementById('mk-loading');
+        if (!el) return;
+        el.style.opacity = '0';
+        setTimeout(function () { if (el && el.parentNode) el.parentNode.removeChild(el); }, 450);
+      }
+      window.addEventListener('flutter-first-frame', hide);
+      setTimeout(hide, 8000);
+    })();
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

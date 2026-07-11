@@ -3,9 +3,9 @@
     "short_name": "MakanKira",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFFFFF",
-    "theme_color": "#EA6A12",
-    "description": "Organize a shared meal, collect orders, split the bill, and request payment.",
+    "background_color": "#00B14F",
+    "theme_color": "#00B14F",
+    "description": "The Malaysian way to organize a shared meal, kira the bill fairly, and collect payment over DuitNow.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

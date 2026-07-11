@@ -72,6 +72,20 @@ flutter:
   # Generate localized strings (lib/l10n/*.arb -> AppLocalizations).
   generate: true
 
+  # Poppins — the geometric, rounded brand typeface (bundled, offline-friendly).
+  # Latin only; CJK (zh) falls back to the platform/Noto font automatically.
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
