@@ -28,6 +28,10 @@ export function toMealSession(row: Row): Record<string, unknown> {
   return {
     id: row.id,
     ownerUserId: row.owner_user_id,
+    // Every endpoint returning toMealSession is owner-authorized (create, detail,
+    // update, finalize, status, close), so the caller always owns this meal. Sent
+    // explicitly so the client never falls back to its (participant) default here.
+    role: 'organizer',
     title: row.title,
     mealType: str(row.meal_type),
     occasionType: row.occasion_type,

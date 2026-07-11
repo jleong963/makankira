@@ -41,6 +41,14 @@ class MealsController extends AsyncNotifier<List<MealSession>> {
     await ref.read(apiClientProvider).postJson('/meals/$id/invite/rotate');
     ref.invalidate(mealDetailProvider(id));
   }
+
+  /// Owner action: mark a meal session complete (moves it to the terminal
+  /// 'closed' status). Allowed from any non-completed status.
+  Future<void> markComplete(String id) async {
+    await ref.read(apiClientProvider).postJson('/meals/$id/close');
+    ref.invalidate(mealDetailProvider(id));
+    await refresh();
+  }
 }
 
 final mealsProvider = AsyncNotifierProvider<MealsController, List<MealSession>>(MealsController.new);

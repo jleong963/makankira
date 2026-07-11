@@ -118,7 +118,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get statusPaymentRequested => 'Bayaran diminta';
 
   @override
-  String get statusClosed => 'Ditutup';
+  String get statusClosed => 'Selesai';
 
   @override
   String get mealSetup => 'Tetapan majlis';
@@ -194,6 +194,16 @@ class AppLocalizationsMs extends AppLocalizations {
   @override
   String get deleteMealConfirm =>
       'Padam sesi makan ini? Tindakan ini tidak boleh dibatalkan.';
+
+  @override
+  String get markComplete => 'Tandakan selesai';
+
+  @override
+  String get markCompleteConfirm =>
+      'Tandakan sesi makan ini sebagai selesai? Anda masih boleh melihatnya kemudian.';
+
+  @override
+  String get mealMarkedComplete => 'Sesi makan ditandakan selesai';
 
   @override
   String get restaurant => 'Restoran';

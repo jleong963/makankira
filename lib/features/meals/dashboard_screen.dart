@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/formatters.dart';
 import '../../shared/language_menu.dart';
@@ -17,6 +18,32 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _query = '';
+
+  /// Organizer marks a meal session complete (terminal 'closed' status), after
+  /// confirming. Keeps meals from being stuck in draft forever.
+  Future<void> _markComplete(MealSession m) async {
+    final l = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(m.title),
+        content: Text(l.markCompleteConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.markComplete)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      await ref.read(mealsProvider.notifier).markComplete(m.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.mealMarkedComplete)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,9 +116,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 subtitle: Text(
                                   [m.restaurantName, formatDateTime(m.mealDateTime)].where((s) => s.isNotEmpty).join(' · '),
                                 ),
-                                trailing: Chip(
-                                  label: Text(statusLabel(l, m.status)),
-                                  visualDensity: VisualDensity.compact,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Chip(
+                                      label: Text(statusLabel(l, m.status)),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    // Organizer can mark an in-progress meal complete;
+                                    // hidden once it's complete or for meals you only joined.
+                                    if (!m.isParticipant && m.status != 'closed')
+                                      PopupMenuButton<String>(
+                                        onSelected: (v) {
+                                          if (v == 'complete') _markComplete(m);
+                                        },
+                                        itemBuilder: (ctx) => [
+                                          PopupMenuItem<String>(
+                                            value: 'complete',
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.check_circle_outline, size: 20),
+                                                const SizedBox(width: 12),
+                                                Text(l.markComplete),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
                                 ),
                                 // Owned meals open the organizer view; joined meals open the participant view.
                                 onTap: () => context.push(m.isParticipant ? '/joined/${m.id}' : '/meals/${m.id}'),

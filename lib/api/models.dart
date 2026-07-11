@@ -72,7 +72,7 @@ class MealSession {
     required this.reminderEnabled,
     required this.reminderLeadMinutes,
     this.remindAt,
-    this.role = 'organizer',
+    this.role = 'participant',
     this.inviteToken,
   });
 
@@ -93,7 +93,10 @@ class MealSession {
         reminderEnabled: j['reminderEnabled'] as bool? ?? true,
         reminderLeadMinutes: (j['reminderLeadMinutes'] as num?)?.toInt() ?? 120,
         remindAt: j['remindAt'] as String?,
-        role: j['role'] as String? ?? 'organizer',
+        // Least privilege: an unknown/missing role is treated as participant, so
+        // organizer-only actions (e.g. Mark as complete) never show by default.
+        // Owner endpoints send role explicitly (see toMealSession).
+        role: j['role'] as String? ?? 'participant',
         inviteToken: j['inviteToken'] as String?,
       );
 }

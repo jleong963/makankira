@@ -117,7 +117,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusPaymentRequested => '已请求付款';
 
   @override
-  String get statusClosed => '已关闭';
+  String get statusClosed => '已完成';
 
   @override
   String get mealSetup => '聚餐设置';
@@ -190,6 +190,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deleteMealConfirm => '删除此聚餐？此操作无法撤销。';
+
+  @override
+  String get markComplete => '标记为已完成';
+
+  @override
+  String get markCompleteConfirm => '确定将此聚餐标记为已完成吗？之后仍可查看。';
+
+  @override
+  String get mealMarkedComplete => '聚餐已标记为完成';
 
   @override
   String get restaurant => '餐厅';

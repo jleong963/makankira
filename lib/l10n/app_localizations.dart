@@ -319,7 +319,7 @@ abstract class AppLocalizations {
   /// No description provided for @statusClosed.
   ///
   /// In en, this message translates to:
-  /// **'Closed'**
+  /// **'Completed'**
   String get statusClosed;
 
   /// No description provided for @mealSetup.
@@ -465,6 +465,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this meal session? This cannot be undone.'**
   String get deleteMealConfirm;
+
+  /// No description provided for @markComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as complete'**
+  String get markComplete;
+
+  /// No description provided for @markCompleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark this meal session as complete? You can still view it afterwards.'**
+  String get markCompleteConfirm;
+
+  /// No description provided for @mealMarkedComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal marked as complete'**
+  String get mealMarkedComplete;
 
   /// No description provided for @restaurant.
   ///
