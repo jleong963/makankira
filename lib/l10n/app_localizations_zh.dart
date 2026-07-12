@@ -213,6 +213,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentMethods => '收款方式';
 
   @override
+  String get manage => '管理';
+
+  @override
   String get noPaymentMethods => '尚未设置收款方式。';
 
   @override
@@ -282,6 +285,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mobileNumber => '手机号';
 
   @override
+  String get searchCountry => '搜索国家/地区';
+
+  @override
+  String get noCountryMatch => '没有匹配的国家/地区';
+
+  @override
+  String get addMobilePrompt => '添加您的手机号码，方便组织者联系您。';
+
+  @override
+  String get addMobileCta => '添加号码';
+
+  @override
   String get role => '角色';
 
   @override
@@ -304,6 +319,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectItems => '请至少选择一个项目。';
+
+  @override
+  String get addNewMenuItem => '添加新项目';
+
+  @override
+  String get addNewItemHint => '列表中没有？在此添加——组织者稍后确认价格。';
 
   @override
   String get viewList => '点餐';

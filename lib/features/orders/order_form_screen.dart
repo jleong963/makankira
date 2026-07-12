@@ -4,6 +4,7 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
+import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 import '../meals/meals_controller.dart';
 import '../menu/menu_controller.dart';
@@ -188,11 +189,10 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                       validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
                     ),
                     const SizedBox(height: 12),
-                    TextFormField(
+                    PhoneField(
                       controller: _mobile,
-                      decoration: InputDecoration(labelText: l.mobileNumber),
-                      keyboardType: TextInputType.phone,
-                      validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
+                      labelText: l.mobileNumber,
+                      validator: (national) => national.isEmpty ? l.required : null,
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,

@@ -508,6 +508,12 @@ abstract class AppLocalizations {
   /// **'Payment methods'**
   String get paymentMethods;
 
+  /// No description provided for @manage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manage;
+
   /// No description provided for @noPaymentMethods.
   ///
   /// In en, this message translates to:
@@ -646,6 +652,30 @@ abstract class AppLocalizations {
   /// **'Mobile number'**
   String get mobileNumber;
 
+  /// No description provided for @searchCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Search country'**
+  String get searchCountry;
+
+  /// No description provided for @noCountryMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching country'**
+  String get noCountryMatch;
+
+  /// No description provided for @addMobilePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your mobile number so organizers can reach you.'**
+  String get addMobilePrompt;
+
+  /// No description provided for @addMobileCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add number'**
+  String get addMobileCta;
+
   /// No description provided for @role.
   ///
   /// In en, this message translates to:
@@ -693,6 +723,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select at least one item.'**
   String get selectItems;
+
+  /// No description provided for @addNewMenuItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new item'**
+  String get addNewMenuItem;
+
+  /// No description provided for @addNewItemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on the list? Add it here — the organizer confirms the price later.'**
+  String get addNewItemHint;
 
   /// No description provided for @viewList.
   ///

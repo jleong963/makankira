@@ -119,3 +119,35 @@ test('getMyResult returns only the caller\'s own result, and null for a non-part
   // Someone who never joined/ordered gets nothing — no cross-participant leak.
   assert.equal(await getMyResult(mid, String(stranger.id)), null);
 });
+
+test('WhatsApp link survives the country-code picker: E.164 input → clean wa.me digits', async () => {
+  // Separate meal so the shared Alice fixture is untouched.
+  const meal = await createMeal(org, { title: 'Intl Lunch', restaurantName: 'SG Cafe' });
+  const mid = String(meal.id);
+  const laksa = await addMenuItem(mid, { name: 'Laksa', actualPriceCents: 1200 });
+  // The PhoneField submits a composed international number with a leading '+'.
+  await createOrder(mid, {
+    participantName: 'Wei',
+    mobileNumber: '+65 9123 4567', // Singapore, with spaces as a picker might send
+    items: [{ menuItemId: laksa.id, quantity: 1 }],
+  });
+  await upsertBill(mid, { calculationMode: 'item_based', finalBillAmountCents: 1200 });
+  await runCalculation(mid);
+
+  const reqs = await buildRequests(mid, 'en');
+  assert.equal(reqs.length, 1);
+  const r = reqs[0]!;
+  // Stored/served as pure digits (no '+', no spaces) — exactly what wa.me needs.
+  assert.equal(r.mobileNumber, '6591234567');
+  assert.equal(r.whatsappUrl, `https://wa.me/6591234567?text=${encodeURIComponent(r.message)}`);
+
+  // And a legacy Malaysian entry (no picker) still produces the 60… wa.me link.
+  const meal2 = await createMeal(org, { title: 'KL Lunch', restaurantName: 'Mamak' });
+  const mid2 = String(meal2.id);
+  const teh = await addMenuItem(mid2, { name: 'Teh', actualPriceCents: 200 });
+  await createOrder(mid2, { participantName: 'Siti', mobileNumber: '0123456789', items: [{ menuItemId: teh.id, quantity: 1 }] });
+  await upsertBill(mid2, { calculationMode: 'item_based', finalBillAmountCents: 200 });
+  await runCalculation(mid2);
+  const r2 = (await buildRequests(mid2, 'en'))[0]!;
+  assert.equal(r2.whatsappUrl, `https://wa.me/60123456789?text=${encodeURIComponent(r2.message)}`);
+});

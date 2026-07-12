@@ -140,8 +140,17 @@ class MealDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Payment methods.
-              _SectionHeader(label: l.paymentMethods),
+              // Payment methods (editable per-session; independent of Settings defaults).
+              Row(
+                children: [
+                  Expanded(child: _SectionHeader(label: l.paymentMethods)),
+                  TextButton.icon(
+                    onPressed: () => context.push('/meals/$mealId/payment-methods'),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(l.manage),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               if (d.paymentMethods.isEmpty)
                 Card(

@@ -50,6 +50,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final meals = ref.watch(mealsProvider);
+    final user = ref.watch(authProvider).asData?.value;
+    final needsMobile = user != null && (user.mobileNumber == null || user.mobileNumber!.isEmpty);
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
@@ -104,6 +106,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                         onChanged: (v) => setState(() => _query = v),
                       ),
+                      if (needsMobile) const _MobilePrompt(),
                     ],
                   ),
                 ),
@@ -201,6 +204,46 @@ class _MealCard extends StatelessWidget {
                     StatusPill(status: meal.status, label: statusLabel(l, meal.status), compact: true),
                   ],
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One-time nudge: shown on the dashboard while the signed-in user has no mobile
+/// number saved. Google sign-in can't supply it, so we prompt for it once — after
+/// which it's remembered and prefilled everywhere. Disappears once set.
+class _MobilePrompt extends StatelessWidget {
+  const _MobilePrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Card(
+        color: scheme.secondaryContainer,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
+          child: Row(
+            children: [
+              Icon(Icons.smartphone_outlined, size: 20, color: scheme.onSecondaryContainer),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l.addMobilePrompt,
+                  style: TextStyle(color: scheme.onSecondaryContainer, fontSize: 13),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => context.push('/settings/profile'),
+                child: Text(l.addMobileCta),
               ),
             ],
           ),

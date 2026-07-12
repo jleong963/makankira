@@ -5,6 +5,7 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
+import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 import 'participant_controller.dart';
 
@@ -400,11 +401,20 @@ class _MyOrderEditorState extends ConsumerState<_MyOrderEditor> {
   final _mobile = TextEditingController();
   final Map<String, int> _qty = {};
   final Map<String, String> _remarks = {};
+  // Local, mutable copy of the orderable menu. Items the participant adds in
+  // this session are appended here with a temporary id and tracked in
+  // [_pendingIds]; they're only created on the server at save time (and only if
+  // still ordered), so adding an item then cancelling never leaves an orphan in
+  // the shared menu.
+  late List<MenuItem> _items;
+  final Set<String> _pendingIds = {};
+  int _tempSeq = 0;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
+    _items = widget.menu.where((i) => i.available).toList();
     final existing = widget.existing;
     if (existing != null) {
       _name.text = existing.participantName;
@@ -431,21 +441,47 @@ class _MyOrderEditorState extends ConsumerState<_MyOrderEditor> {
   Future<void> _save() async {
     final l = AppLocalizations.of(context);
     if (!_formKey.currentState!.validate()) return;
-    final items = _qty.entries.where((e) => e.value > 0).map((e) {
-      final r = (_remarks[e.key] ?? '').trim();
-      return {'menuItemId': e.key, 'quantity': e.value, if (r.isNotEmpty) 'remarks': r};
-    }).toList();
-    if (items.isEmpty) {
+    final selected = _qty.entries.where((e) => e.value > 0).toList();
+    if (selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.selectItems)));
       return;
     }
+    // Build the items payload. A participant-added (pending) entry is sent as an
+    // inline `newItem`, so the server creates the menu item and saves the order
+    // in one atomic call — a failed save can't leave an orphan item behind, and
+    // an item added-then-unselected is simply never sent.
+    final items = selected.map((e) {
+      final r = (_remarks[e.key] ?? '').trim();
+      final item = <String, dynamic>{'quantity': e.value};
+      if (r.isNotEmpty) item['remarks'] = r;
+      if (_pendingIds.contains(e.key)) {
+        final draft = _items.firstWhere((i) => i.id == e.key);
+        final newItem = <String, dynamic>{'name': draft.name};
+        if (draft.estimatedPriceCents != null) newItem['estimatedPriceCents'] = draft.estimatedPriceCents;
+        item['newItem'] = newItem;
+      } else {
+        item['menuItemId'] = e.key;
+      }
+      return item;
+    }).toList();
+    final mobile = _mobile.text.trim();
     setState(() => _saving = true);
     try {
       await ref.read(participantRepositoryProvider).saveMyOrder(widget.mealId, {
         'participantName': _name.text.trim(),
-        'mobileNumber': _mobile.text.trim(),
+        'mobileNumber': mobile,
         'items': items,
       });
+      // Remember the number on the user's profile the first time they enter it,
+      // so every later form is prefilled ("type once"). Best-effort — never fail
+      // the order over this.
+      final auth = ref.read(authProvider);
+      final user = auth is AsyncData<AppUser?> ? auth.value : null;
+      if (user != null && (user.mobileNumber == null || user.mobileNumber!.isEmpty) && mobile.isNotEmpty) {
+        try {
+          await ref.read(authProvider.notifier).updateProfile({'mobileNumber': mobile});
+        } catch (_) {/* ignore */}
+      }
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
@@ -455,10 +491,68 @@ class _MyOrderEditorState extends ConsumerState<_MyOrderEditor> {
     }
   }
 
+  /// Add an item the organizer didn't list, as a local pending entry preselected
+  /// at qty 1. Name is required; price is optional — the organizer confirms the
+  /// actual price at the bill step. Nothing is persisted here: the item only
+  /// reaches the shared menu when the order is saved (see [_save]).
+  Future<void> _addNewItem() async {
+    final l = AppLocalizations.of(context);
+    final nameCtrl = TextEditingController();
+    final priceCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.addNewMenuItem),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l.addNewItemHint, style: Theme.of(ctx).textTheme.bodySmall),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: nameCtrl,
+                autofocus: true,
+                decoration: InputDecoration(labelText: l.itemName),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: priceCtrl,
+                decoration: InputDecoration(labelText: l.estimatedPrice),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) Navigator.pop(ctx, true);
+            },
+            child: Text(l.add),
+          ),
+        ],
+      ),
+    );
+    final name = nameCtrl.text.trim();
+    final price = parseRMToCents(priceCtrl.text);
+    nameCtrl.dispose();
+    priceCtrl.dispose();
+    if (confirmed != true || name.isEmpty || !mounted) return;
+    setState(() {
+      final tempId = '__pending_${_tempSeq++}';
+      _items = [..._items, MenuItem(id: tempId, name: name, estimatedPriceCents: price)];
+      _pendingIds.add(tempId);
+      _qty[tempId] = 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final available = widget.menu.where((i) => i.available).toList();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Form(
@@ -475,18 +569,30 @@ class _MyOrderEditorState extends ConsumerState<_MyOrderEditor> {
               validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            PhoneField(
               controller: _mobile,
-              decoration: InputDecoration(labelText: l.mobileNumber),
-              keyboardType: TextInputType.phone,
-              validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
+              labelText: l.mobileNumber,
+              validator: (national) => national.isEmpty ? l.required : null,
             ),
             const Divider(height: 24),
-            if (available.isEmpty)
+            if (_items.isEmpty)
               Padding(padding: const EdgeInsets.all(8), child: Text(l.noMenuItems)),
             Flexible(
               child: SingleChildScrollView(
-                child: Column(children: available.map(_itemRow).toList()),
+                child: Column(
+                  children: [
+                    ..._items.map(_itemRow),
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: _saving ? null : _addNewItem,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(l.addNewMenuItem),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),

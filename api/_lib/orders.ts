@@ -8,7 +8,7 @@ import type { Row, InStatement } from '@libsql/client';
 import { query, queryOne, batchWrite } from './db.js';
 import { newId } from './ids.js';
 import { HttpError } from './http.js';
-import { normalizeMobile, requirePositiveInt } from './validate.js';
+import { normalizeMobile, requirePositiveInt, optionalIntCents } from './validate.js';
 
 type Input = Record<string, unknown>;
 const asStr = (v: unknown): string | null => (typeof v === 'string' && v.length > 0 ? v : null);
@@ -19,6 +19,12 @@ interface ParsedItem {
   remarks: string | null;
 }
 
+interface ParsedItems {
+  items: ParsedItem[];
+  /** menu_items INSERTs for inline new items, to run in the same transaction. */
+  newMenuStmts: InStatement[];
+}
+
 async function assertEditable(mealId: string): Promise<void> {
   const meal = await queryOne('SELECT status FROM meal_sessions WHERE id = ?', [mealId]);
   const status = meal ? String(meal.status) : '';
@@ -27,16 +33,43 @@ async function assertEditable(mealId: string): Promise<void> {
   }
 }
 
-/** Validate the items array against this meal's available menu. */
-async function parseItems(mealId: string, raw: unknown): Promise<ParsedItem[]> {
+/**
+ * Validate the items array. Each entry is either an existing `menuItemId`, or an
+ * inline `newItem: { name, estimatedPriceCents }` — a participant adding an item
+ * the organizer didn't list. New items yield a menu_items INSERT (name +
+ * optional estimate only; available, actual price left to the organizer) that is
+ * returned to the caller so it commits in the SAME transaction as the order —
+ * so a failed save can never leave an orphan menu item behind.
+ */
+async function parseItems(mealId: string, raw: unknown): Promise<ParsedItems> {
   if (!Array.isArray(raw) || raw.length === 0) {
     throw new HttpError(400, 'invalid_request', 'At least one item is required');
   }
   const menu = await query('SELECT id, available FROM menu_items WHERE meal_session_id = ?', [mealId]);
   const available = new Map(menu.map((m) => [String(m.id), Number(m.available) === 1]));
 
-  return raw.map((entry): ParsedItem => {
+  const items: ParsedItem[] = [];
+  const newMenuStmts: InStatement[] = [];
+
+  for (const entry of raw) {
     const e = (entry ?? {}) as Record<string, unknown>;
+    const quantity = requirePositiveInt(e.quantity, 'quantity');
+    const remarks = asStr(e.remarks);
+
+    const newItem = e.newItem as Record<string, unknown> | undefined;
+    if (newItem && typeof newItem === 'object') {
+      const name = asStr(newItem.name);
+      if (!name) throw new HttpError(400, 'invalid_request', 'Item name is required');
+      const id = newId('item');
+      newMenuStmts.push({
+        sql: `INSERT INTO menu_items (id, meal_session_id, name, estimated_price_cents, available)
+              VALUES (?, ?, ?, ?, 1)`,
+        args: [id, mealId, name, optionalIntCents(newItem.estimatedPriceCents, 'estimatedPriceCents')],
+      });
+      items.push({ menuItemId: id, quantity, remarks });
+      continue;
+    }
+
     const menuItemId = asStr(e.menuItemId);
     if (!menuItemId || !available.has(menuItemId)) {
       throw new HttpError(400, 'invalid_item', `Unknown menu item: ${String(e.menuItemId)}`);
@@ -44,12 +77,10 @@ async function parseItems(mealId: string, raw: unknown): Promise<ParsedItem[]> {
     if (!available.get(menuItemId)) {
       throw new HttpError(400, 'item_unavailable', `Menu item ${menuItemId} is not available`);
     }
-    return {
-      menuItemId,
-      quantity: requirePositiveInt(e.quantity, 'quantity'),
-      remarks: asStr(e.remarks),
-    };
-  });
+    items.push({ menuItemId, quantity, remarks });
+  }
+
+  return { items, newMenuStmts };
 }
 
 async function itemsFor(orderIds: string[]): Promise<Map<string, Row[]>> {
@@ -91,7 +122,7 @@ function requireMobile(input: Input): string {
   const raw = asStr(input.mobileNumber);
   if (!raw) throw new HttpError(400, 'invalid_request', 'Mobile number is required');
   const normalized = normalizeMobile(raw);
-  if (!normalized) throw new HttpError(400, 'invalid_mobile', 'Mobile number is not a valid Malaysian number');
+  if (!normalized) throw new HttpError(400, 'invalid_mobile', 'Mobile number is not a valid phone number');
   return normalized;
 }
 
@@ -100,10 +131,12 @@ export async function createOrder(mealId: string, input: Input): Promise<{ order
   const name = asStr(input.participantName);
   if (!name) throw new HttpError(400, 'invalid_request', 'Participant name is required');
   const mobile = requireMobile(input);
-  const items = await parseItems(mealId, input.items);
+  const { items, newMenuStmts } = await parseItems(mealId, input.items);
 
   const orderId = newId('order');
   const stmts: InStatement[] = [
+    // Inline new menu items first — order_items reference them (FK parent first).
+    ...newMenuStmts,
     {
       sql: `INSERT INTO participant_orders
               (id, meal_session_id, participant_user_id, participant_name, participant_role, mobile_number, submitted_at)
@@ -146,7 +179,9 @@ export async function updateOrder(mealId: string, id: string, input: Input): Pro
     stmts.push({ sql: `UPDATE participant_orders SET ${sets.join(', ')} WHERE id = ?`, args: [...args, id] });
   }
   if ('items' in input) {
-    const items = await parseItems(mealId, input.items);
+    const { items, newMenuStmts } = await parseItems(mealId, input.items);
+    // Inline new menu items first, then swap the order's item rows.
+    stmts.push(...newMenuStmts);
     stmts.push({ sql: 'DELETE FROM order_items WHERE participant_order_id = ?', args: [id] });
     for (const it of items) {
       stmts.push({

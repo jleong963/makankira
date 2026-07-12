@@ -217,6 +217,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentMethods => 'Payment methods';
 
   @override
+  String get manage => 'Manage';
+
+  @override
   String get noPaymentMethods => 'No receiving methods yet.';
 
   @override
@@ -286,6 +289,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mobileNumber => 'Mobile number';
 
   @override
+  String get searchCountry => 'Search country';
+
+  @override
+  String get noCountryMatch => 'No matching country';
+
+  @override
+  String get addMobilePrompt =>
+      'Add your mobile number so organizers can reach you.';
+
+  @override
+  String get addMobileCta => 'Add number';
+
+  @override
   String get role => 'Role';
 
   @override
@@ -308,6 +324,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectItems => 'Select at least one item.';
+
+  @override
+  String get addNewMenuItem => 'Add new item';
+
+  @override
+  String get addNewItemHint =>
+      'Not on the list? Add it here — the organizer confirms the price later.';
 
   @override
   String get viewList => 'Orders';

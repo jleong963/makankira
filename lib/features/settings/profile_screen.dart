@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 
 /// Screen 2D — profile: display name + mobile (email read-only).
@@ -137,11 +138,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _mobile,
-                  decoration: InputDecoration(labelText: l.mobileNumber),
-                  keyboardType: TextInputType.phone,
-                ),
+                PhoneField(controller: _mobile, labelText: l.mobileNumber),
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _saving ? null : _save,

@@ -218,6 +218,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get paymentMethods => 'Kaedah bayaran';
 
   @override
+  String get manage => 'Urus';
+
+  @override
   String get noPaymentMethods => 'Belum ada kaedah penerimaan.';
 
   @override
@@ -287,6 +290,19 @@ class AppLocalizationsMs extends AppLocalizations {
   String get mobileNumber => 'Nombor telefon';
 
   @override
+  String get searchCountry => 'Cari negara';
+
+  @override
+  String get noCountryMatch => 'Tiada negara sepadan';
+
+  @override
+  String get addMobilePrompt =>
+      'Tambah nombor telefon anda supaya penganjur boleh menghubungi anda.';
+
+  @override
+  String get addMobileCta => 'Tambah nombor';
+
+  @override
   String get role => 'Peranan';
 
   @override
@@ -309,6 +325,13 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get selectItems => 'Pilih sekurang-kurangnya satu item.';
+
+  @override
+  String get addNewMenuItem => 'Tambah item baharu';
+
+  @override
+  String get addNewItemHint =>
+      'Tiada dalam senarai? Tambah di sini — penganjur akan sahkan harga kemudian.';
 
   @override
   String get viewList => 'Pesanan';

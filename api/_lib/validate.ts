@@ -31,15 +31,20 @@ export function isSupportedLocale(v: unknown): v is Locale {
 }
 
 /**
- * Normalize a Malaysian mobile number to the `60XXXXXXXXX` form (no `+`),
- * suitable for wa.me links. Accepts `0123456789`, `60123456789`,
- * `+60123456789` with optional spaces/dashes. Returns null if it doesn't look
- * like a Malaysian mobile number.
+ * Normalize a mobile number to digits-only (no `+`), suitable for wa.me links.
+ * Accepts an international E.164 number from the country-code picker
+ * (`+<8–15 digits>`), and — for backward compatibility — bare Malaysian input
+ * (`0123456789`, `60123456789`, `+60123456789`) which is normalized to `60…`.
+ * Spaces/dashes are ignored. Returns null if it doesn't look like a phone number.
  */
 export function normalizeMobile(raw: string): string | null {
   const s = raw.replace(/[\s-]/g, '');
-  if (!/^(?:\+?60|0)1\d{7,9}$/.test(s)) return null;
-  let digits = s.replace(/^\+/, '');
-  if (digits.startsWith('0')) digits = '60' + digits.slice(1);
-  return digits;
+  // International E.164 from the country-code picker: "+" then 8–15 digits.
+  if (/^\+\d{8,15}$/.test(s)) return s.slice(1);
+  // Legacy Malaysian input (no country-code picker): "0…"/"60…"/"+60…" mobile.
+  if (/^(?:\+?60|0)1\d{7,9}$/.test(s)) {
+    const digits = s.replace(/^\+/, '');
+    return digits.startsWith('0') ? '60' + digits.slice(1) : digits;
+  }
+  return null;
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/formatters.dart';
+import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 import 'meals_controller.dart';
 
@@ -232,7 +233,7 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
                 const SizedBox(height: 12),
                 TextFormField(controller: _organizerName, decoration: InputDecoration(labelText: l.organizerName)),
                 const SizedBox(height: 12),
-                TextFormField(controller: _organizerContact, decoration: InputDecoration(labelText: l.organizerContact)),
+                PhoneField(controller: _organizerContact, labelText: l.organizerContact),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,

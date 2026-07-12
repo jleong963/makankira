@@ -46,6 +46,10 @@ dependencies:
   google_sign_in: ^7.2.0
   google_sign_in_web: ^1.1.3
   web: ^1.1.1
+  country_flags: ^3.1.0
+  # Renders inline SVG (country flags pull this in transitively; used directly
+  # for the official multicolor Google "G" on the Sign in with Google button).
+  jovial_svg: ^1.1.29
 
 dev_dependencies:
   flutter_test:

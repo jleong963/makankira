@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/brand.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/google_sign_in_button.dart';
 import '../../shared/language_menu.dart';
 import 'google_redirect.dart';
 
@@ -71,10 +72,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   style: text.bodyMedium?.copyWith(color: MkColors.inkSoft),
                                 ),
                                 const SizedBox(height: 24),
-                                FilledButton.icon(
+                                GoogleSignInButton(
+                                  label: l.continueWithGoogle,
                                   onPressed: googleConfigured ? startGoogleSignIn : null,
-                                  icon: const _GoogleBadge(),
-                                  label: Text(l.continueWithGoogle),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -99,28 +99,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// A white circle carrying the Google "G", so the green CTA still reads clearly
-/// as Google sign-in without shipping the brand asset.
-class _GoogleBadge extends StatelessWidget {
-  const _GoogleBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-      child: const Text(
-        'G',
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          color: Color(0xFF4285F4),
-          fontWeight: FontWeight.w700,
-          fontSize: 15,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
