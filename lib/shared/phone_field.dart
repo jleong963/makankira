@@ -66,45 +66,35 @@ class _PhoneFieldState extends State<PhoneField> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: InkWell(
-            onTap: _pickCountry,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CountryFlag.fromCountryCode(_country.iso, height: 18, width: 24, shape: const RoundedRectangle(3)),
-                  const SizedBox(width: 6),
-                  Text('+${_country.dial}', style: const TextStyle(fontWeight: FontWeight.w500)),
-                  Icon(Icons.arrow_drop_down, color: scheme.onSurfaceVariant),
-                ],
-              ),
+    // The country selector lives INSIDE the field as a prefix, so it shares the
+    // input's box and vertical centering — no two-widget alignment to fight.
+    return TextFormField(
+      controller: _national,
+      keyboardType: TextInputType.phone,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+      validator: widget.validator == null ? null : (v) => widget.validator!((v ?? '').trim()),
+      onChanged: (_) => _sync(),
+      decoration: InputDecoration(
+        labelText: widget.labelText,
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        prefixIcon: InkWell(
+          onTap: _pickCountry,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CountryFlag.fromCountryCode(_country.iso, height: 18, width: 24, shape: const RoundedRectangle(3)),
+                const SizedBox(width: 6),
+                Text('+${_country.dial}', style: const TextStyle(fontWeight: FontWeight.w500)),
+                Icon(Icons.arrow_drop_down, size: 22, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Container(width: 1, height: 22, color: scheme.outlineVariant),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TextFormField(
-            controller: _national,
-            keyboardType: TextInputType.phone,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-            decoration: InputDecoration(labelText: widget.labelText),
-            validator: widget.validator == null ? null : (v) => widget.validator!((v ?? '').trim()),
-            onChanged: (_) => _sync(),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
