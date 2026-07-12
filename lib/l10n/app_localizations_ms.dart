@@ -446,6 +446,16 @@ class AppLocalizationsMs extends AppLocalizations {
   String get howToPay => 'Cara bayar kepada penganjur';
 
   @override
+  String get whatYouOwe => 'Apa anda perlu bayar';
+
+  @override
+  String get paymentPending =>
+      'Jumlah anda akan dipaparkan di sini setelah penganjur memuktamadkan bil.';
+
+  @override
+  String get honoreeNoPay => 'Anda tetamu kehormat — tiada apa untuk dibayar.';
+
+  @override
   String get displayName => 'Nama paparan';
 
   @override

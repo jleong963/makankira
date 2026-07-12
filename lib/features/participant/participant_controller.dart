@@ -11,6 +11,26 @@ final memberViewProvider = FutureProvider.family<MemberMealView, String>((ref, m
   return MemberMealView.fromJson(data);
 });
 
+/// A participant's own bill: their result (null until the organizer calculates)
+/// and how to pay the organizer. Never includes other participants' amounts.
+class MyPayment {
+  final PaymentResult? result;
+  final List<PaymentMethod> paymentMethods;
+  MyPayment({this.result, required this.paymentMethods});
+}
+
+final myPaymentProvider = FutureProvider.family<MyPayment, String>((ref, mealId) async {
+  final data = await ref.read(apiClientProvider).getJson('/meals/$mealId/my-payment');
+  final r = data['result'];
+  return MyPayment(
+    result: r == null ? null : PaymentResult.fromJson(r as Map<String, dynamic>),
+    paymentMethods: (data['paymentMethods'] as List? ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(PaymentMethod.fromJson)
+        .toList(),
+  );
+});
+
 class ParticipantRepository {
   ParticipantRepository(this.ref);
   final Ref ref;

@@ -70,7 +70,7 @@ import {
 } from './_lib/membership.js';
 import { getBill, upsertBill } from './_lib/bill.js';
 import { runCalculation } from './_lib/calculate.js';
-import { listResults, overrideResult, markPaid, markPending, listEvents } from './_lib/payments.js';
+import { listResults, getMyResult, overrideResult, markPaid, markPending, listEvents } from './_lib/payments.js';
 import { buildRequests, buildRequest } from './_lib/paymentRequests.js';
 import { uploadFile, getFile, deleteFile } from './_lib/files.js';
 import { addSubscription, removeSubscription } from './_lib/push.js';
@@ -408,6 +408,17 @@ const routes: Route[] = [
       menu,
       orders,
       myOrder: mine ? toOrder(mine.order, mine.items) : null,
+    });
+  }),
+  // A participant's own bill: only their result (null until Calculate is run),
+  // plus how to pay the organizer. Member-scoped — never exposes other people.
+  route('GET', 'meals/:mealId/my-payment', async (req, res, p) => {
+    const { user } = await requireMember(req, p.mealId!);
+    const row = await getMyResult(p.mealId!, String(user.id));
+    const methods = await listMethods(mealScope(p.mealId!));
+    sendJson(res, 200, {
+      result: row ? toPaymentResult(row) : null,
+      paymentMethods: methods.map(toPaymentMethod),
     });
   }),
   route('PUT', 'meals/:mealId/my-order', async (req, res, p) => {

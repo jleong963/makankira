@@ -154,6 +154,8 @@ class ParticipantMealScreen extends ConsumerWidget {
               else
                 Text(l.ordersClosed, style: Theme.of(context).textTheme.bodySmall),
               const Divider(height: 32),
+              _MyPaymentSection(mealId: mealId),
+              const Divider(height: 32),
               Text(l.everyonesOrders, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               if (others.isEmpty)
@@ -240,6 +242,145 @@ class _MealHeader extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// The participant's OWN bill: their final amount, breakdown, payment status,
+/// and how to pay the organizer. Loads independently of the order view; shows a
+/// gentle "not ready" state until the organizer has calculated the bill.
+class _MyPaymentSection extends ConsumerWidget {
+  const _MyPaymentSection({required this.mealId});
+  final String mealId;
+
+  String _methodLine(PaymentMethod m) {
+    switch (m.methodType) {
+      case 'bank_account':
+        return [m.bankName, m.accountNumber, m.accountName].where((s) => s != null && s.isNotEmpty).join(' · ');
+      case 'duitnow_id':
+        return 'DuitNow ID: ${m.duitNowId ?? ''}';
+      case 'duitnow_qr':
+        return 'DuitNow QR';
+      case 'custom':
+        return m.instructions ?? '';
+      default:
+        return m.methodType;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final async = ref.watch(myPaymentProvider(mealId));
+
+    Widget shell(Widget child) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.whatYouOwe, style: text.titleMedium),
+            const SizedBox(height: 8),
+            child,
+          ],
+        );
+
+    return async.when(
+      loading: () => shell(const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+        ),
+      )),
+      // Don't let a payment fetch error block the order screen — just hide it.
+      error: (e, _) => const SizedBox.shrink(),
+      data: (mp) {
+        final r = mp.result;
+        if (r == null) {
+          return shell(Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.hourglass_empty, color: scheme.onSurfaceVariant, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l.paymentPending, style: TextStyle(color: scheme.onSurfaceVariant))),
+                ],
+              ),
+            ),
+          ));
+        }
+        if (r.isHonoree) {
+          return shell(Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.card_giftcard, color: scheme.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(l.honoreeNoPay)),
+                ],
+              ),
+            ),
+          ));
+        }
+        final paid = r.paymentStatus == 'paid';
+        final parts = <String>[
+          '${l.subtotal} ${formatRM(r.subtotalCents)}',
+          if (r.farewellSponsoredShareCents > 0) '${l.farewellShareLabel} ${formatRM(r.farewellSponsoredShareCents)}',
+          if (r.taxCents + r.serviceChargeCents > 0) '+${formatRM(r.taxCents + r.serviceChargeCents)}',
+          if (r.discountCents > 0) '-${formatRM(r.discountCents)}',
+          if (r.companyClaimCents > 0) '-${formatRM(r.companyClaimCents)}',
+          if (r.roundingAdjustmentCents != 0) formatRM(r.roundingAdjustmentCents),
+        ];
+        return shell(Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        formatRM(r.totalDueCents),
+                        style: text.headlineSmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Chip(
+                      visualDensity: VisualDensity.compact,
+                      avatar: Icon(
+                        paid ? Icons.check_circle : Icons.schedule,
+                        size: 18,
+                        color: paid ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,
+                      ),
+                      label: Text(paid ? l.paid : l.pending),
+                      backgroundColor: paid ? scheme.secondaryContainer : scheme.surfaceContainerHighest,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(parts.join(' · '), style: text.bodySmall),
+                if (mp.paymentMethods.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  Text(l.howToPay, style: text.titleSmall),
+                  const SizedBox(height: 6),
+                  ...mp.paymentMethods.map((m) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.account_balance_wallet_outlined, size: 18, color: scheme.onSurfaceVariant),
+                            const SizedBox(width: 10),
+                            Expanded(child: Text(_methodLine(m))),
+                          ],
+                        ),
+                      )),
+                ],
+              ],
+            ),
+          ),
+        ));
+      },
+    );
+  }
 }
 
 /// Bottom-sheet editor for the participant's own order.

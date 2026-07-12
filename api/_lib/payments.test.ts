@@ -6,11 +6,11 @@ import { setupTestDb } from './testdb.js';
 import { upsertUser } from './auth.js';
 import { createMeal } from './meals.js';
 import { addMenuItem } from './menu.js';
-import { createOrder } from './orders.js';
+import { createOrder, upsertMyOrder } from './orders.js';
 import { addMethod, mealScope } from './paymentMethods.js';
 import { upsertBill } from './bill.js';
 import { runCalculation } from './calculate.js';
-import { listResults, getResult, markPaid, markPending, overrideResult, listEvents } from './payments.js';
+import { listResults, getResult, getMyResult, markPaid, markPending, overrideResult, listEvents } from './payments.js';
 import { buildRequests } from './paymentRequests.js';
 
 let dbFile: string;
@@ -93,4 +93,29 @@ test('payment request greeting is localized', async () => {
   assert.match(ms.message, /^Hai Alice/);
   const zh = (await buildRequests(mealId, 'zh'))[0]!;
   assert.match(zh.message, /Alice 您好/);
+});
+
+test('getMyResult returns only the caller\'s own result, and null for a non-participant', async () => {
+  // Separate meal so this doesn't perturb the shared Alice fixture above.
+  const participant = await upsertUser({ provider: 'google', providerUserId: 'pay-part', displayName: 'Bob' });
+  const stranger = await upsertUser({ provider: 'google', providerUserId: 'pay-stranger', displayName: 'Eve' });
+  const meal = await createMeal(org, { title: 'Solo Lunch', restaurantName: 'XYZ' });
+  const mid = String(meal.id);
+  const nasi = await addMenuItem(mid, { name: 'Nasi Lemak', actualPriceCents: 800 });
+  // Bob submits his OWN order (sets participant_user_id — the link getMyResult uses).
+  await upsertMyOrder(mid, String(participant.id), {
+    participantName: 'Bob',
+    mobileNumber: '0198887777',
+    items: [{ menuItemId: nasi.id, quantity: 1 }],
+  });
+  await upsertBill(mid, { calculationMode: 'item_based', finalBillAmountCents: 800 });
+  await runCalculation(mid);
+
+  const mine = await getMyResult(mid, String(participant.id));
+  assert.ok(mine, 'Bob has a result');
+  assert.equal(Number(mine!.total_due_cents), 800);
+  assert.equal(String(mine!.participant_name), 'Bob');
+
+  // Someone who never joined/ordered gets nothing — no cross-participant leak.
+  assert.equal(await getMyResult(mid, String(stranger.id)), null);
 });

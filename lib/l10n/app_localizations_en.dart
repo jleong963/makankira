@@ -447,6 +447,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get howToPay => 'How to pay the organizer';
 
   @override
+  String get whatYouOwe => 'What you owe';
+
+  @override
+  String get paymentPending =>
+      'Your amount will appear here once the organizer finalizes the bill.';
+
+  @override
+  String get honoreeNoPay => 'You\'re the guest of honour — nothing to pay.';
+
+  @override
   String get displayName => 'Display name';
 
   @override

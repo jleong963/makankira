@@ -438,6 +438,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get howToPay => '如何付款给组织者';
 
   @override
+  String get whatYouOwe => '您应付金额';
+
+  @override
+  String get paymentPending => '组织者结算账单后，您的应付金额将显示在这里。';
+
+  @override
+  String get honoreeNoPay => '您是荣誉嘉宾，无需付款。';
+
+  @override
   String get displayName => '显示名称';
 
   @override

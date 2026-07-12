@@ -19,6 +19,21 @@ export async function getResult(mealId: string, resultId: string): Promise<Row> 
   return r;
 }
 
+/**
+ * A participant's OWN payment result, resolved via their order (a participant
+ * only ever has one order per meal). Returns null until the organizer has run
+ * Calculate. Backs the member-facing `my-payment` endpoint, so a participant
+ * sees only their own bill — never anyone else's amounts.
+ */
+export async function getMyResult(mealId: string, userId: string): Promise<Row | null> {
+  return queryOne(
+    `SELECT pr.* FROM payment_results pr
+       JOIN participant_orders po ON po.id = pr.participant_order_id
+      WHERE pr.meal_session_id = ? AND po.participant_user_id = ?`,
+    [mealId, userId],
+  );
+}
+
 export async function listEvents(mealId: string): Promise<Row[]> {
   return query('SELECT * FROM payment_status_events WHERE meal_session_id = ? ORDER BY created_at DESC', [mealId]);
 }

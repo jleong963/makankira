@@ -958,6 +958,24 @@ abstract class AppLocalizations {
   /// **'How to pay the organizer'**
   String get howToPay;
 
+  /// No description provided for @whatYouOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'What you owe'**
+  String get whatYouOwe;
+
+  /// No description provided for @paymentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your amount will appear here once the organizer finalizes the bill.'**
+  String get paymentPending;
+
+  /// No description provided for @honoreeNoPay.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re the guest of honour — nothing to pay.'**
+  String get honoreeNoPay;
+
   /// No description provided for @displayName.
   ///
   /// In en, this message translates to:
