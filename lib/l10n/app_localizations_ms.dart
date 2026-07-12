@@ -236,6 +236,9 @@ class AppLocalizationsMs extends AppLocalizations {
   String get sectionPaymentRequests => 'Permintaan bayaran';
 
   @override
+  String get sectionPaymentSummary => 'Ringkasan bayaran';
+
+  @override
   String get notSet => 'Tidak ditetapkan';
 
   @override
@@ -427,6 +430,20 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get noPaymentRequests => 'Kira dahulu untuk jana permintaan bayaran.';
+
+  @override
+  String get payableToOrganizer => 'Perlu dibayar kepada penganjur';
+
+  @override
+  String get paymentSummaryHint =>
+      'Jumlah setiap orang perlu bayar kepada penganjur.';
+
+  @override
+  String get paymentSummaryEmpty =>
+      'Masukkan bil dan tekan Kira untuk melihat butiran bayaran penuh.';
+
+  @override
+  String get howToPay => 'Cara bayar kepada penganjur';
 
   @override
   String get displayName => 'Nama paparan';

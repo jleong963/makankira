@@ -208,6 +208,12 @@ class MealDetailScreen extends ConsumerWidget {
                 color: const Color(0xFF7C4DFF),
                 onTap: () => context.push('/meals/$mealId/payment-requests'),
               ),
+              _SectionTile(
+                icon: Icons.request_quote,
+                label: l.sectionPaymentSummary,
+                color: const Color(0xFF3F51B5),
+                onTap: () => context.push('/meals/$mealId/payment-summary'),
+              ),
             ],
           );
         },

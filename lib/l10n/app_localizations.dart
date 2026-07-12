@@ -544,6 +544,12 @@ abstract class AppLocalizations {
   /// **'Payment requests'**
   String get sectionPaymentRequests;
 
+  /// No description provided for @sectionPaymentSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment summary'**
+  String get sectionPaymentSummary;
+
   /// No description provided for @notSet.
   ///
   /// In en, this message translates to:
@@ -927,6 +933,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calculate first to generate payment requests.'**
   String get noPaymentRequests;
+
+  /// No description provided for @payableToOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Payable to organizer'**
+  String get payableToOrganizer;
+
+  /// No description provided for @paymentSummaryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What each person pays the organizer.'**
+  String get paymentSummaryHint;
+
+  /// No description provided for @paymentSummaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the bill and run Calculate to see the full payment details.'**
+  String get paymentSummaryEmpty;
+
+  /// No description provided for @howToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'How to pay the organizer'**
+  String get howToPay;
 
   /// No description provided for @displayName.
   ///

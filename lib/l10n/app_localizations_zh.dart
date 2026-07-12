@@ -231,6 +231,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sectionPaymentRequests => '付款请求';
 
   @override
+  String get sectionPaymentSummary => '付款汇总';
+
+  @override
   String get notSet => '未设置';
 
   @override
@@ -421,6 +424,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noPaymentRequests => '请先计算以生成付款请求。';
+
+  @override
+  String get payableToOrganizer => '应付给组织者';
+
+  @override
+  String get paymentSummaryHint => '每人应付给组织者的金额。';
+
+  @override
+  String get paymentSummaryEmpty => '请先输入账单并点击计算，以查看完整付款明细。';
+
+  @override
+  String get howToPay => '如何付款给组织者';
 
   @override
   String get displayName => '显示名称';

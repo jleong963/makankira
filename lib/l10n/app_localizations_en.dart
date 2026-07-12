@@ -235,6 +235,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionPaymentRequests => 'Payment requests';
 
   @override
+  String get sectionPaymentSummary => 'Payment summary';
+
+  @override
   String get notSet => 'Not set';
 
   @override
@@ -429,6 +432,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noPaymentRequests =>
       'Calculate first to generate payment requests.';
+
+  @override
+  String get payableToOrganizer => 'Payable to organizer';
+
+  @override
+  String get paymentSummaryHint => 'What each person pays the organizer.';
+
+  @override
+  String get paymentSummaryEmpty =>
+      'Enter the bill and run Calculate to see the full payment details.';
+
+  @override
+  String get howToPay => 'How to pay the organizer';
 
   @override
   String get displayName => 'Display name';
