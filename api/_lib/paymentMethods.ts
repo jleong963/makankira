@@ -9,6 +9,7 @@ import type { Row, InStatement } from '@libsql/client';
 import { query, queryOne, batchWrite } from './db.js';
 import { newId } from './ids.js';
 import { HttpError } from './http.js';
+import { deleteFileById } from './files.js';
 
 const METHOD_TYPES = ['bank_account', 'duitnow_id', 'duitnow_qr', 'custom'] as const;
 type MethodType = (typeof METHOD_TYPES)[number];
@@ -154,13 +155,39 @@ export async function updateMethod(s: Scope, id: string, input: Input): Promise<
     stmts.push({ sql: `UPDATE ${s.table} SET ${sets.join(', ')} WHERE id = ?`, args: [...args, id] });
   }
   if (stmts.length > 0) await batchWrite(stmts);
+  // If the QR image was swapped for a new one, drop the old blob if now orphaned.
+  if ('qrImageFileId' in input) {
+    const oldFileId = existing.qr_image_file_id as string | null;
+    if (oldFileId && oldFileId !== asStr(input.qrImageFileId)) await cleanupQrFile(oldFileId);
+  }
   return (await queryOne(`SELECT * FROM ${s.table} WHERE id = ?`, [id]))!;
 }
 
+/**
+ * Delete a method's DuitNow-QR blob once its file reference is dropped — but
+ * ONLY when no other saved method (account OR session) still points at it.
+ * Session methods are prefilled by copying the account default's
+ * qr_image_file_id (see [prefillSessionMethods]), so the same file can be shared
+ * across a default and several sessions; reference-count before deleting.
+ * Best-effort: file cleanup must never block the method change.
+ */
+export async function cleanupQrFile(fileId: string | null): Promise<void> {
+  if (!fileId) return;
+  try {
+    const inUser = await queryOne('SELECT 1 FROM user_payment_methods WHERE qr_image_file_id = ? LIMIT 1', [fileId]);
+    const inMeal = await queryOne('SELECT 1 FROM payment_methods WHERE qr_image_file_id = ? LIMIT 1', [fileId]);
+    if (!inUser && !inMeal) await deleteFileById(fileId);
+  } catch {
+    // ignore — a lingering blob is far better than a failed delete/update
+  }
+}
+
 export async function deleteMethod(s: Scope, id: string): Promise<void> {
-  const existing = await queryOne(`SELECT id FROM ${s.table} WHERE id = ? AND ${s.col} = ?`, [id, s.owner]);
+  const existing = await queryOne(`SELECT qr_image_file_id FROM ${s.table} WHERE id = ? AND ${s.col} = ?`, [id, s.owner]);
   if (!existing) throw new HttpError(404, 'not_found', 'Payment method not found');
   await query(`DELETE FROM ${s.table} WHERE id = ?`, [id]);
+  // Now that the row is gone, drop the QR blob if it was the last reference.
+  await cleanupQrFile(existing.qr_image_file_id as string | null);
 }
 
 /**

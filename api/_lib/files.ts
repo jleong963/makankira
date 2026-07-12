@@ -89,3 +89,20 @@ export async function deleteFile(userId: string, fileId: string): Promise<void> 
   }
   await query('DELETE FROM uploaded_files WHERE id = ?', [fileId]);
 }
+
+/**
+ * Delete a file (blob + row) by id, ignoring ownership — for internal cleanup
+ * when the last thing referencing it is removed (e.g. a DuitNow-QR payment
+ * method). No-op if the file is already gone; blob/storage errors are swallowed
+ * so cleanup never blocks the caller.
+ */
+export async function deleteFileById(fileId: string): Promise<void> {
+  const row = await queryOne('SELECT blob_url FROM uploaded_files WHERE id = ?', [fileId]);
+  if (!row) return;
+  try {
+    await del(String(row.blob_url), { token: env('BLOB_READ_WRITE_TOKEN') });
+  } catch {
+    // Blob already gone or storage not configured — drop the row anyway.
+  }
+  await query('DELETE FROM uploaded_files WHERE id = ?', [fileId]);
+}

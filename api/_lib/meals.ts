@@ -10,7 +10,8 @@ import { query, queryOne, execute, batchWrite } from './db.js';
 import { newId, newInviteToken } from './ids.js';
 import { HttpError } from './http.js';
 import { requireUser } from './auth.js';
-import { prefillSessionMethods, listMethods, mealScope } from './paymentMethods.js';
+import { prefillSessionMethods, listMethods, mealScope, cleanupQrFile } from './paymentMethods.js';
+import { deleteFileById } from './files.js';
 
 export type MealStatus =
   | 'draft'
@@ -249,8 +250,23 @@ export async function closeMeal(userId: string, mealId: string): Promise<Row> {
 
 export async function deleteMeal(userId: string, mealId: string): Promise<void> {
   await getMealForOwner(userId, mealId);
+  // Capture the session methods' QR file references BEFORE their rows are
+  // deleted — the SQL deletes below don't touch Blob storage, so any now-orphaned
+  // QR image would otherwise leak. (Session QR uploads carry meal_session_id=null,
+  // so the uploaded_files delete never catches them.)
+  const qrRows = await query(
+    'SELECT DISTINCT qr_image_file_id AS fid FROM payment_methods WHERE meal_session_id = ? AND qr_image_file_id IS NOT NULL',
+    [mealId],
+  );
+  // Reap the meal's own uploads (menu images / imported menu Excel — anything
+  // tied to this meal by meal_session_id) blob + row, up front so it doesn't
+  // depend on the meal_sessions cascade (which wouldn't free the blobs anyway).
+  const mealFiles = await query('SELECT id FROM uploaded_files WHERE meal_session_id = ?', [mealId]);
+  for (const f of mealFiles) {
+    await deleteFileById(String(f.id));
+  }
   // Explicit dependency-ordered delete (FK enforcement is not guaranteed on
-  // remote libSQL). Blob objects for uploaded_files are cleaned up separately.
+  // remote libSQL).
   await batchWrite([
     {
       sql: 'DELETE FROM order_items WHERE participant_order_id IN (SELECT id FROM participant_orders WHERE meal_session_id = ?)',
@@ -266,4 +282,10 @@ export async function deleteMeal(userId: string, mealId: string): Promise<void> 
     { sql: 'DELETE FROM uploaded_files WHERE meal_session_id = ?', args: [mealId] },
     { sql: 'DELETE FROM meal_sessions WHERE id = ?', args: [mealId] },
   ]);
+  // Drop each QR blob now that the session methods are gone — but only if no
+  // surviving method (the account default, or another session prefilled from it)
+  // still references it. Best-effort; never blocks the delete.
+  for (const r of qrRows) {
+    await cleanupQrFile(String(r.fid));
+  }
 }
