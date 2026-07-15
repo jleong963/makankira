@@ -150,6 +150,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuUrl => '菜单链接';
 
   @override
+  String get menuReference => '菜单参考';
+
+  @override
+  String get menuReferenceHint => '添加菜单链接和/或上传菜单照片——餐厅没有线上菜单时很实用。';
+
+  @override
+  String get menuPhotos => '菜单照片';
+
+  @override
+  String get addPhotos => '添加照片';
+
+  @override
+  String get removePhotoConfirm => '移除这张照片？';
+
+  @override
+  String get photosUploadFailed => '部分照片无法上传，可稍后在“编辑”中添加。';
+
+  @override
+  String get noMenuReference => '尚无菜单链接或照片。';
+
+  @override
   String get mealDateTime => '日期与时间';
 
   @override

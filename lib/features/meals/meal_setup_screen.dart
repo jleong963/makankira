@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../../l10n/app_localizations.dart';
 import '../../shared/formatters.dart';
 import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
+import '../menu/menu_images_controller.dart';
+import '../menu/menu_images_editor.dart';
 import 'meals_controller.dart';
 
 /// Screen 3 — create or edit a meal session.
@@ -34,6 +37,11 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
   DateTime? _dateTime;
   DateTime? _remindAt;
   bool _saving = false;
+
+  // Create mode has no meal id yet, so picked menu photos are staged locally and
+  // uploaded right after the meal is created (see [_submit]). Edit mode manages
+  // photos live against the server via MenuImagesEditor instead.
+  final List<PlatformFile> _stagedImages = [];
 
   bool get _isEditing => widget.meal != null;
 
@@ -160,17 +168,29 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
     try {
       final notifier = ref.read(mealsProvider.notifier);
       final String mealId;
+      var photoFailures = 0;
       if (editing) {
         await notifier.updateMeal(widget.meal!.id, body);
         mealId = widget.meal!.id;
+        // Photos were already added/removed live by MenuImagesEditor.
       } else {
         mealId = (await notifier.create(body)).id;
+        // Upload any staged photos now that the meal exists. Best-effort: a
+        // failed photo never undoes the created meal — the user is told to retry
+        // from Edit, and no orphan file is left behind (files are only created
+        // once the meal exists).
+        photoFailures = await _uploadStagedImages(mealId);
       }
       if (!mounted) return;
       final msg = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(editing ? msg.saved : msg.mealCreated)),
       );
+      if (photoFailures > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg.photosUploadFailed), duration: const Duration(seconds: 6)),
+        );
+      }
       context.go('/meals/$mealId');
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -181,6 +201,82 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
       setState(() => _saving = false);
     }
+  }
+
+  /// Upload the locally-staged photos to the freshly-created meal. Returns the
+  /// number that failed (0 = all uploaded).
+  Future<int> _uploadStagedImages(String mealId) async {
+    final repo = ref.read(menuImagesRepositoryProvider);
+    var failures = 0;
+    for (final f in _stagedImages) {
+      final bytes = f.bytes;
+      if (bytes == null) {
+        failures++;
+        continue;
+      }
+      try {
+        await repo.upload(mealId, bytes, filename: f.name, contentType: imageContentTypeForExtension(f.extension));
+      } catch (_) {
+        failures++;
+      }
+    }
+    return failures;
+  }
+
+  Future<void> _pickStagedImages() async {
+    final res = await FilePicker.pickFiles(type: FileType.image, allowMultiple: true, withData: true);
+    if (res == null || res.files.isEmpty || !mounted) return;
+    setState(() => _stagedImages.addAll(res.files.where((f) => f.bytes != null)));
+  }
+
+  /// Menu reference block: the menu link (kept) plus menu photos. In edit mode
+  /// photos are managed live; on create they're staged and uploaded on save.
+  Widget _menuReference(AppLocalizations l) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(l.menuReference,
+              style: text.titleSmall?.copyWith(color: scheme.onSurfaceVariant, letterSpacing: 0.2)),
+        ),
+        TextFormField(
+          controller: _menuUrl,
+          decoration: InputDecoration(labelText: l.menuUrl),
+          keyboardType: TextInputType.url,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, top: 6),
+          child: Text(l.menuReferenceHint, style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(l.menuPhotos, style: text.labelLarge),
+        ),
+        if (_isEditing)
+          MenuImagesEditor(mealId: widget.meal!.id)
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (var i = 0; i < _stagedImages.length; i++) _StagedThumb(
+                file: _stagedImages[i],
+                onRemove: _saving ? null : () => setState(() => _stagedImages.removeAt(i)),
+              ),
+              OutlinedButton.icon(
+                onPressed: _saving ? null : _pickStagedImages,
+                icon: const Icon(Icons.add_photo_alternate_outlined),
+                label: Text(l.addPhotos),
+              ),
+            ],
+          ),
+      ],
+    );
   }
 
   @override
@@ -219,9 +315,9 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
                   ],
                   onChanged: (v) => setState(() => _mealType = v),
                 ),
-                const SizedBox(height: 12),
-                TextFormField(controller: _menuUrl, decoration: InputDecoration(labelText: l.menuUrl)),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                _menuReference(l),
+                const SizedBox(height: 16),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l.mealDateTime),
@@ -274,6 +370,60 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A locally-staged (not-yet-uploaded) menu photo thumbnail with a remove badge,
+/// shown while creating a meal. Mirrors the look of [MenuImageThumb].
+class _StagedThumb extends StatelessWidget {
+  const _StagedThumb({required this.file, this.onRemove});
+  final PlatformFile file;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: 92,
+      height: 92,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.memory(file.bytes!, fit: BoxFit.cover),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+              ),
+            ),
+          ),
+          if (onRemove != null)
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Material(
+                color: Colors.black54,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onRemove,
+                  child: const Padding(
+                    padding: EdgeInsets.all(3),
+                    child: Icon(Icons.close, size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -382,6 +382,48 @@ abstract class AppLocalizations {
   /// **'Menu URL'**
   String get menuUrl;
 
+  /// No description provided for @menuReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu reference'**
+  String get menuReference;
+
+  /// No description provided for @menuReferenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a menu link and/or upload photos of the menu — handy when the restaurant has no online menu.'**
+  String get menuReferenceHint;
+
+  /// No description provided for @menuPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu photos'**
+  String get menuPhotos;
+
+  /// No description provided for @addPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get addPhotos;
+
+  /// No description provided for @removePhotoConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this photo?'**
+  String get removePhotoConfirm;
+
+  /// No description provided for @photosUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos couldn\'t be uploaded. You can add them later from Edit.'**
+  String get photosUploadFailed;
+
+  /// No description provided for @noMenuReference.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu link or photos yet.'**
+  String get noMenuReference;
+
   /// No description provided for @mealDateTime.
   ///
   /// In en, this message translates to:

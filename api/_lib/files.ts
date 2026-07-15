@@ -74,6 +74,14 @@ export async function uploadFile(args: {
   return (await queryOne('SELECT * FROM uploaded_files WHERE id = ?', [id]))!;
 }
 
+/** A meal's menu-reference images, oldest first (README Screens 3/4). */
+export async function listMenuImages(mealId: string): Promise<Row[]> {
+  return query(
+    "SELECT * FROM uploaded_files WHERE meal_session_id = ? AND file_kind = 'menu_image' ORDER BY created_at, id",
+    [mealId],
+  );
+}
+
 export async function getFile(userId: string, fileId: string): Promise<Row> {
   const row = await queryOne('SELECT * FROM uploaded_files WHERE id = ? AND owner_user_id = ?', [fileId, userId]);
   if (!row) throw new HttpError(404, 'not_found', 'File not found');

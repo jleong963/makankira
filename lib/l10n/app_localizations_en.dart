@@ -151,6 +151,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuUrl => 'Menu URL';
 
   @override
+  String get menuReference => 'Menu reference';
+
+  @override
+  String get menuReferenceHint =>
+      'Add a menu link and/or upload photos of the menu — handy when the restaurant has no online menu.';
+
+  @override
+  String get menuPhotos => 'Menu photos';
+
+  @override
+  String get addPhotos => 'Add photos';
+
+  @override
+  String get removePhotoConfirm => 'Remove this photo?';
+
+  @override
+  String get photosUploadFailed =>
+      'Some photos couldn\'t be uploaded. You can add them later from Edit.';
+
+  @override
+  String get noMenuReference => 'No menu link or photos yet.';
+
+  @override
   String get mealDateTime => 'Date & time';
 
   @override

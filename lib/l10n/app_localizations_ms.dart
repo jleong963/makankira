@@ -151,6 +151,29 @@ class AppLocalizationsMs extends AppLocalizations {
   String get menuUrl => 'URL menu';
 
   @override
+  String get menuReference => 'Rujukan menu';
+
+  @override
+  String get menuReferenceHint =>
+      'Tambah pautan menu dan/atau muat naik foto menu — berguna apabila restoran tiada menu dalam talian.';
+
+  @override
+  String get menuPhotos => 'Foto menu';
+
+  @override
+  String get addPhotos => 'Tambah foto';
+
+  @override
+  String get removePhotoConfirm => 'Buang foto ini?';
+
+  @override
+  String get photosUploadFailed =>
+      'Sebahagian foto tidak dapat dimuat naik. Anda boleh tambah kemudian melalui Edit.';
+
+  @override
+  String get noMenuReference => 'Tiada pautan atau foto menu lagi.';
+
+  @override
   String get mealDateTime => 'Tarikh & masa';
 
   @override

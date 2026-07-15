@@ -7,6 +7,7 @@ import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
+import '../menu/menu_images_editor.dart';
 import 'participant_controller.dart';
 
 /// Participant view of a meal they joined via an invite link: meal info, their
@@ -103,6 +104,12 @@ class ParticipantMealScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               _MealHeader(meal: v.meal),
+              if (v.menuImages.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(l.menuPhotos, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                MenuImageGallery(urls: v.menuImages.map((e) => e.url).toList()),
+              ],
               const SizedBox(height: 16),
               Text(l.yourOrder, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),

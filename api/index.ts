@@ -72,7 +72,7 @@ import { getBill, upsertBill } from './_lib/bill.js';
 import { runCalculation } from './_lib/calculate.js';
 import { listResults, getMyResult, overrideResult, markPaid, markPending, listEvents } from './_lib/payments.js';
 import { buildRequests, buildRequest } from './_lib/paymentRequests.js';
-import { uploadFile, getFile, deleteFile } from './_lib/files.js';
+import { uploadFile, getFile, deleteFile, listMenuImages } from './_lib/files.js';
 import { addSubscription, removeSubscription } from './_lib/push.js';
 import { sendReminders } from './_lib/reminders.js';
 import {
@@ -292,6 +292,13 @@ const routes: Route[] = [
     sendJson(res, 200, { ok: true });
   }),
 
+  // menu reference images (upload/delete reuse the generic /files endpoints with
+  // fileKind=menu_image&mealId=…; this lists the ones already attached to a meal)
+  route('GET', 'meals/:mealId/menu-images', async (req, res, p) => {
+    await requireOwnedMeal(req, p.mealId!);
+    sendJson(res, 200, { menuImages: (await listMenuImages(p.mealId!)).map(toUploadedFile) });
+  }),
+
   // orders
   route('GET', 'meals/:mealId/orders/summary', async (req, res, p) => {
     await requireOwnedMeal(req, p.mealId!);
@@ -403,9 +410,11 @@ const routes: Route[] = [
     const menu = (await listMenuItems(p.mealId!)).filter((m) => Number(m.available) === 1).map(toMenuItem);
     const orders = await orderSummary(p.mealId!, 'participant'); // names + items, no mobiles
     const mine = await getMyOrder(p.mealId!, String(user.id));
+    const menuImages = (await listMenuImages(p.mealId!)).map(toUploadedFile);
     sendJson(res, 200, {
       meal: toPublicMeal(meal),
       menu,
+      menuImages,
       orders,
       myOrder: mine ? toOrder(mine.order, mine.items) : null,
     });

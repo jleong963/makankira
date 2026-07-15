@@ -137,6 +137,22 @@ class PaymentMethod {
       );
 }
 
+/// A menu-reference image attached to a meal session (stored in Vercel Blob;
+/// [url] is a public blob URL). Uploaded via POST /files?fileKind=menu_image.
+class MenuImage {
+  final String id;
+  final String url;
+
+  MenuImage({required this.id, required this.url});
+
+  factory MenuImage.fromJson(Map<String, dynamic> j) => MenuImage(
+        id: j['id'] as String,
+        // menu-images / member-view serialize an uploaded_files row (blobUrl);
+        // the upload endpoint echoes the same value as `url`.
+        url: (j['blobUrl'] ?? j['url']) as String,
+      );
+}
+
 class MenuItem {
   final String id;
   final String? itemCode;
@@ -221,16 +237,27 @@ class ParticipantOrder {
 class MemberMealView {
   final MealSession meal;
   final List<MenuItem> menu;
+  final List<MenuImage> menuImages;
   final List<dynamic> orders; // [{ participantOrderId, participantName, role, items:[...] }]
   final ParticipantOrder? myOrder;
 
-  MemberMealView({required this.meal, required this.menu, required this.orders, this.myOrder});
+  MemberMealView({
+    required this.meal,
+    required this.menu,
+    this.menuImages = const [],
+    required this.orders,
+    this.myOrder,
+  });
 
   factory MemberMealView.fromJson(Map<String, dynamic> j) => MemberMealView(
         meal: MealSession.fromJson(j['meal'] as Map<String, dynamic>),
         menu: (j['menu'] as List? ?? const [])
             .cast<Map<String, dynamic>>()
             .map(MenuItem.fromJson)
+            .toList(),
+        menuImages: (j['menuImages'] as List? ?? const [])
+            .cast<Map<String, dynamic>>()
+            .map(MenuImage.fromJson)
             .toList(),
         orders: (j['orders'] as List? ?? const <dynamic>[]),
         myOrder: j['myOrder'] == null ? null : ParticipantOrder.fromJson(j['myOrder'] as Map<String, dynamic>),

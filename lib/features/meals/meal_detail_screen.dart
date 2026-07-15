@@ -7,6 +7,8 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
+import '../menu/menu_images_controller.dart';
+import '../menu/menu_images_editor.dart';
 import 'meals_controller.dart';
 
 /// Screen 3/6 hub — meal info + payment methods + links to the sub-screens.
@@ -140,6 +142,10 @@ class MealDetailScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              // Menu reference: the menu link and/or uploaded menu photos. Managed
+              // from the meal's Edit screen (same place the organizer sets them).
+              _MenuReferenceSection(mealId: mealId, meal: m),
+              const SizedBox(height: 20),
               // Payment methods (editable per-session; independent of Settings defaults).
               Row(
                 children: [
@@ -246,6 +252,93 @@ class _SectionHeader extends StatelessWidget {
               letterSpacing: 0.2,
             ),
       ),
+    );
+  }
+}
+
+/// Menu reference card: the menu link and/or uploaded menu photos, with a
+/// "Manage" affordance to the meal's Edit screen. Read-only here; tapping a
+/// photo opens the full-screen viewer.
+class _MenuReferenceSection extends ConsumerWidget {
+  const _MenuReferenceSection({required this.mealId, required this.meal});
+  final String mealId;
+  final MealSession meal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final imagesAsync = ref.watch(menuImagesProvider(mealId));
+    final urls = imagesAsync.asData?.value.map((e) => e.url).toList() ?? const <String>[];
+    final menuUrl = meal.menuUrl;
+    final hasUrl = menuUrl != null && menuUrl.isNotEmpty;
+    // While the photos are still loading and there's no link to show, hold the
+    // card blank rather than briefly flashing the "nothing yet" message.
+    final loadingOnly = !hasUrl && urls.isEmpty && imagesAsync.isLoading;
+    final empty = !hasUrl && urls.isEmpty && !imagesAsync.isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: _SectionHeader(label: l.menuReference)),
+            TextButton.icon(
+              onPressed: () => context.push('/meals/$mealId/edit', extra: meal),
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text(l.manage),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: loadingOnly
+                ? const Center(
+                    child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : empty
+                ? Row(
+                    children: [
+                      Icon(Icons.restaurant_menu, color: scheme.onSurfaceVariant, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(l.noMenuReference, style: TextStyle(color: scheme.onSurfaceVariant))),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (hasUrl)
+                        InkWell(
+                          onTap: () => openUrl(ensureUrlScheme(menuUrl)),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.link, size: 18, color: scheme.onSurfaceVariant),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    menuUrl,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(color: scheme.primary),
+                                  ),
+                                ),
+                                Icon(Icons.open_in_new, size: 16, color: scheme.onSurfaceVariant),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (hasUrl && urls.isNotEmpty) const Divider(height: 20),
+                      if (urls.isNotEmpty) MenuImageGallery(urls: urls),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }
