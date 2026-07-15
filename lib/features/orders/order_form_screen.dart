@@ -8,6 +8,8 @@ import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 import '../meals/meals_controller.dart';
 import '../menu/menu_controller.dart';
+import '../menu/menu_images_controller.dart';
+import '../menu/menu_images_editor.dart';
 import 'orders_controller.dart';
 
 /// Screen 5 — participant order form (organizer enters on their device).
@@ -157,6 +159,8 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
     final l = AppLocalizations.of(context);
     final menu = ref.watch(menuListProvider(widget.mealId));
     final menuUrl = ref.watch(mealDetailProvider(widget.mealId)).asData?.value.meal.menuUrl;
+    final menuImageUrls =
+        ref.watch(menuImagesProvider(widget.mealId)).asData?.value.map((e) => e.url).toList() ?? const <String>[];
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? l.edit : l.addOrder)),
       body: menu.when(
@@ -172,7 +176,9 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    if (menuUrl != null && menuUrl.isNotEmpty) ...[
+                    // Menu reference for whoever is entering this order: the menu
+                    // link (if any) plus the uploaded menu photos (tap to zoom).
+                    if (menuUrl != null && menuUrl.isNotEmpty)
                       Align(
                         alignment: Alignment.centerLeft,
                         child: OutlinedButton.icon(
@@ -181,8 +187,17 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
                           label: Text(l.menuUrl),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                    if (menuImageUrls.isNotEmpty) ...[
+                      if (menuUrl != null && menuUrl.isNotEmpty) const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(l.menuPhotos, style: Theme.of(context).textTheme.labelLarge),
+                      ),
+                      const SizedBox(height: 8),
+                      MenuImageGallery(urls: menuImageUrls),
                     ],
+                    if ((menuUrl != null && menuUrl.isNotEmpty) || menuImageUrls.isNotEmpty)
+                      const SizedBox(height: 12),
                     TextFormField(
                       controller: _name,
                       decoration: InputDecoration(labelText: l.participantName),
