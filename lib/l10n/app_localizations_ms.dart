@@ -25,7 +25,15 @@ class AppLocalizationsMs extends AppLocalizations {
   String get signOut => 'Log keluar';
 
   @override
-  String get termsPrivacy => 'Terma & Privasi';
+  String get termsOfService => 'Terma Perkhidmatan';
+
+  @override
+  String get privacyPolicy => 'Dasar Privasi';
+
+  @override
+  String loginAgreement(String terms, String privacy) {
+    return 'Dengan meneruskan, anda bersetuju dengan $terms dan $privacy kami.';
+  }
 
   @override
   String get loginError => 'Log masuk gagal. Sila cuba lagi.';

@@ -130,11 +130,23 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get signOut;
 
-  /// No description provided for @termsPrivacy.
+  /// No description provided for @termsOfService.
   ///
   /// In en, this message translates to:
-  /// **'Terms & Privacy'**
-  String get termsPrivacy;
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// Sign-in consent line; {terms} and {privacy} are replaced with the tappable document titles.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our {terms} and {privacy}.'**
+  String loginAgreement(String terms, String privacy);
 
   /// No description provided for @loginError.
   ///

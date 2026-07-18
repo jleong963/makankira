@@ -24,7 +24,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signOut => '退出登录';
 
   @override
-  String get termsPrivacy => '条款与隐私';
+  String get termsOfService => '服务条款';
+
+  @override
+  String get privacyPolicy => '隐私政策';
+
+  @override
+  String loginAgreement(String terms, String privacy) {
+    return '继续即表示您同意我们的$terms和$privacy。';
+  }
 
   @override
   String get loginError => '登录失败，请重试。';

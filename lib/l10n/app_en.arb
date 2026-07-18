@@ -5,7 +5,16 @@
   "loginSubtitle": "Organize a shared meal, collect orders, split the bill, and request payment.",
   "continueWithGoogle": "Continue with Google",
   "signOut": "Sign out",
-  "termsPrivacy": "Terms & Privacy",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "loginAgreement": "By continuing, you agree to our {terms} and {privacy}.",
+  "@loginAgreement": {
+    "description": "Sign-in consent line; {terms} and {privacy} are replaced with the tappable document titles.",
+    "placeholders": {
+      "terms": { "type": "String" },
+      "privacy": { "type": "String" }
+    }
+  },
   "loginError": "Sign-in failed. Please try again.",
   "language": "Language",
   "languageEnglish": "English",

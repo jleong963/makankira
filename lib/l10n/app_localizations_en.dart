@@ -25,7 +25,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOut => 'Sign out';
 
   @override
-  String get termsPrivacy => 'Terms & Privacy';
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String loginAgreement(String terms, String privacy) {
+    return 'By continuing, you agree to our $terms and $privacy.';
+  }
 
   @override
   String get loginError => 'Sign-in failed. Please try again.';

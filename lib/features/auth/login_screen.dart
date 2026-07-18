@@ -1,7 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../app/brand.dart';
 import '../../l10n/app_localizations.dart';
+import '../../shared/agreement_line.dart';
 import '../../shared/google_sign_in_button.dart';
 import '../../shared/language_menu.dart';
 import 'google_redirect.dart';
@@ -16,6 +19,23 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _termsTap = TapGestureRecognizer();
+  final _privacyTap = TapGestureRecognizer();
+
+  @override
+  void initState() {
+    super.initState();
+    _termsTap.onTap = () => context.push('/terms');
+    _privacyTap.onTap = () => context.push('/privacy');
+  }
+
+  @override
+  void dispose() {
+    _termsTap.dispose();
+    _privacyTap.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -77,10 +97,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   onPressed: googleConfigured ? startGoogleSignIn : null,
                                 ),
                                 const SizedBox(height: 16),
-                                Text(
-                                  l.termsPrivacy,
+                                Text.rich(
+                                  agreementSpan(
+                                    l: l,
+                                    termsRecognizer: _termsTap,
+                                    privacyRecognizer: _privacyTap,
+                                    base: text.bodySmall?.copyWith(color: MkColors.inkSoft, height: 1.4),
+                                    linkStyle: text.bodySmall?.copyWith(
+                                      color: MkColors.green,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                      height: 1.4,
+                                    ),
+                                  ),
                                   textAlign: TextAlign.center,
-                                  style: text.bodySmall?.copyWith(color: MkColors.inkSoft),
                                 ),
                               ],
                             ),

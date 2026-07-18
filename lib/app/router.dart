@@ -6,6 +6,8 @@ import 'navigation.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/splash_screen.dart';
+import '../features/legal/legal_document.dart';
+import '../features/legal/legal_screen.dart';
 import '../features/meals/dashboard_screen.dart';
 import '../features/meals/meal_detail_screen.dart';
 import '../features/meals/meal_setup_screen.dart';
@@ -51,6 +53,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final auth = authListenable.value;
       final loc = state.matchedLocation;
+
+      // Public legal pages: reachable in every auth state (people must be able
+      // to read them before agreeing at sign-in, and the URLs are referenced
+      // from the Google OAuth consent screen).
+      if (loc == '/terms' || loc == '/privacy') return null;
+
       final atSplash = loc == '/splash';
       final atLogin = loc == '/login';
 
@@ -85,6 +93,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: '/terms', builder: (context, state) => const LegalScreen(kind: LegalDocKind.terms)),
+      GoRoute(path: '/privacy', builder: (context, state) => const LegalScreen(kind: LegalDocKind.privacy)),
       GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
       GoRoute(path: '/meals/new', builder: (context, state) => const MealSetupScreen()),
       GoRoute(

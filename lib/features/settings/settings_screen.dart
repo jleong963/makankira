@@ -41,6 +41,19 @@ class SettingsScreen extends ConsumerWidget {
             value: isDark,
             onChanged: (v) => ref.read(themeModeProvider.notifier).setDark(v),
           ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l.termsOfService),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/terms'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l.privacyPolicy),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/privacy'),
+          ),
         ],
       ),
     );
