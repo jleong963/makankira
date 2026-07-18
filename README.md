@@ -83,7 +83,7 @@ MakanKira turns that whole flow into a few guided screens — traceable, fair, a
 - Mark participants paid/pending with a payment-status audit trail.
 
 **🔔 Reminders & app-like experience**
-- Order-submission reminders by **email** (Resend) and **Web Push** (VAPID), scheduled on a free **GitHub Actions** cron.
+- Order-submission reminders by **email** (Gmail SMTP — no domain needed) and **Web Push** (VAPID), scheduled on a free **GitHub Actions** cron.
 - Delivered as an installable **PWA** on Android/desktop and a responsive web app on iOS.
 
 > Money is stored and calculated in **integer cents** end-to-end to avoid rounding drift, and all sensitive operations run server-side.
@@ -105,7 +105,7 @@ Sign in → Create meal → Add / import menu → Collect orders → Review & fi
 | **Database** | [Turso](https://turso.tech) (libSQL / SQLite) via `@libsql/client`, SQL migrations |
 | **Auth** | Google ID token obtained in the browser, **verified server-side** (`jose` + Google JWKS); signed **HttpOnly session cookie** |
 | **File storage** | [Vercel Blob](https://vercel.com/storage/blob) (DuitNow QR & menu images) |
-| **Email / Push** | [Resend](https://resend.com) (transactional email) · Web Push (VAPID) |
+| **Email / Push** | Gmail SMTP via `nodemailer` (order-reminder email, no domain needed) · Web Push (VAPID) |
 | **Excel** | `exceljs` for import/export (runs in the API layer) |
 | **Hosting / CI** | One Vercel project (UI + `/api` on the same origin); GitHub Actions for deploy and the reminder cron |
 
@@ -272,7 +272,7 @@ Env vars are read only when a feature needs them, so the app runs with just the 
 | `GOOGLE_OAUTH_CLIENT_ID` | **Core** — login | Google Cloud Console (step 3b) |
 | `SESSION_SECRET` | **Core** — session cookie | `openssl rand -base64 32` or the Node one-liner |
 | `BLOB_READ_WRITE_TOKEN` | DuitNow QR & menu **image uploads** | Vercel → Storage → Blob store |
-| `RESEND_API_KEY`, `RESEND_FROM` | order-reminder **emails** | [Resend](https://resend.com) API key + verified from-address |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | order-reminder **emails** | a Gmail address + an [App Password](https://myaccount.google.com/apppasswords) (needs 2-Step Verification; no domain) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | **Web Push** reminders | `npx web-push generate-vapid-keys` |
 | `CRON_SECRET` | protects the reminder cron endpoint | `openssl rand -base64 32` or the Node one-liner |
 

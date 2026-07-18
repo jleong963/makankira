@@ -1,6 +1,6 @@
 /**
  * reminders.ts — order-submission reminders (README Section 15). Invoked by the
- * free GitHub Actions cron. Sends email (Resend) + Web Push (web-push) to the
+ * free GitHub Actions cron. Sends email (Gmail SMTP) + Web Push (web-push) to the
  * organizer before meal time, once per session. Sends are best-effort; the
  * find-due query is pure and unit-tested.
  */
@@ -8,7 +8,7 @@
 import type { Row } from '@libsql/client';
 import { query, execute } from './db.js';
 import { reminderText } from './i18n.js';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import * as webpush from 'web-push';
 
 /** Sessions whose reminder is due and not yet sent, while still collecting. */
@@ -46,7 +46,7 @@ export async function markReminderSent(mealId: string, nowIso: string): Promise<
  *  POST /api/cron/reminders, which the GitHub Actions log prints verbatim. */
 export interface ReminderRunSummary {
   processed: number; // due sessions handled this run
-  emailConfigured: boolean; // RESEND_API_KEY present
+  emailConfigured: boolean; // Gmail SMTP creds present
   pushConfigured: boolean; // VAPID keys present
   emailsSent: number;
   emailsFailed: number;
@@ -55,12 +55,34 @@ export interface ReminderRunSummary {
   pushFailed: number;
 }
 
+let _transport: nodemailer.Transporter | null = null;
+
+/** Lazily-built Gmail SMTP transport, or null when creds aren't configured. No
+ *  domain needed: Gmail authenticates the send itself (DKIM/SPF align to
+ *  gmail.com), so reminders land in the inbox. Free tier ~500 recipients/day. */
+function gmailTransport(): nodemailer.Transporter | null {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+  if (!_transport) {
+    _transport = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+    });
+  }
+  return _transport;
+}
+
 async function sendEmail(to: string, subject: string, body: string): Promise<boolean> {
-  if (!process.env.RESEND_API_KEY) return false;
+  const transport = gmailTransport();
+  if (!transport) return false;
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: process.env.RESEND_FROM || 'MakanKira <reminders@makankira.app>',
+    await transport.sendMail({
+      // Gmail requires the from-address to be the authenticated account; only the
+      // display name is free-form.
+      from: `MakanKira <${process.env.GMAIL_USER}>`,
       to,
       subject,
       text: body,
@@ -109,7 +131,7 @@ async function sendPush(userId: string, title: string, body: string): Promise<Pu
 
 export async function sendReminders(nowIso: string): Promise<ReminderRunSummary> {
   const due = await findDueSessions(nowIso);
-  const emailConfigured = Boolean(process.env.RESEND_API_KEY);
+  const emailConfigured = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
   const pushConfigured = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
   const summary: ReminderRunSummary = {
     processed: due.length,
@@ -135,7 +157,7 @@ export async function sendReminders(nowIso: string): Promise<ReminderRunSummary>
         summary.emailsFailed++;
         emailStatus = 'failed';
       } else {
-        emailStatus = 'skipped'; // no RESEND_API_KEY — email channel off
+        emailStatus = 'skipped'; // Gmail SMTP not configured — email channel off
       }
     }
 

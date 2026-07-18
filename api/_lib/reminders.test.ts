@@ -81,7 +81,7 @@ test('sendReminders marks a due session sent exactly once', async () => {
     [String(m.id)],
   );
 
-  // No RESEND/VAPID env in tests, so email + push are best-effort no-ops; the run
+  // No GMAIL/VAPID env in tests, so email + push are best-effort no-ops; the run
   // still records the session and stamps reminder_sent_at.
   const first = await sendReminders('2026-06-28T00:00:00Z');
   assert.ok(first.processed >= 1, 'processed the due session');

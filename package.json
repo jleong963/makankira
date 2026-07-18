@@ -21,11 +21,12 @@
     "exceljs": "^4.4.0",
     "jose": "^6.2.3",
     "nanoid": "^5.1.16",
-    "resend": "^6.16.0",
+    "nodemailer": "^9.0.3",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.0.1",
+    "@types/nodemailer": "^8.0.1",
     "@types/web-push": "^3.6.4",
     "@vercel/node": "^5.8.22",
     "dotenv": "^17.4.2",
