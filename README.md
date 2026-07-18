@@ -163,10 +163,10 @@ You'll also create two free accounts during setup: a **Google Cloud** project (f
 
 ```bash
 # HTTPS
-git clone https://github.com/jleong94/makankira.git
+git clone https://github.com/jleong963/makankira.git
 
 # …or SSH
-git clone git@github.com:jleong94/makankira.git
+git clone git@github.com:jleong963/makankira.git
 
 cd makankira
 ```
