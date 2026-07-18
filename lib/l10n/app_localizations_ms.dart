@@ -209,6 +209,11 @@ class AppLocalizationsMs extends AppLocalizations {
   String get reminderTimePast => 'Pilih tarikh & masa akan datang';
 
   @override
+  String inSessionReminder(String meal) {
+    return 'Masa untuk hantar atau sahkan pesanan untuk $meal.';
+  }
+
+  @override
   String get mealCreated => 'Majlis dicipta';
 
   @override

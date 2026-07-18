@@ -204,6 +204,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reminderTimePast => '请选择未来的日期和时间';
 
   @override
+  String inSessionReminder(String meal) {
+    return '该提交或确认「$meal」的点餐了。';
+  }
+
+  @override
   String get mealCreated => '聚餐已创建';
 
   @override

@@ -5,6 +5,10 @@ import '../l10n/app_localizations.dart';
 /// client) can surface app-level dialogs.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Root scaffold-messenger key, wired into MaterialApp so app-level code (e.g.
+/// the in-session reminder watcher) can show a SnackBar from any route.
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 bool _storageDialogOpen = false;
 
 /// Prominent alert shown when a database write fails because storage is full,

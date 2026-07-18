@@ -65,6 +65,7 @@
   "reminderTimeRequired": "Sila tetapkan tarikh & masa peringatan",
   "reminderBeforeMeal": "Peringatan mesti lebih awal daripada masa makan",
   "reminderTimePast": "Pilih tarikh & masa akan datang",
+  "inSessionReminder": "Masa untuk hantar atau sahkan pesanan untuk {meal}.",
   "mealCreated": "Majlis dicipta",
   "mealDeleted": "Majlis dipadam",
   "deleteMealConfirm": "Padam sesi makan ini? Tindakan ini tidak boleh dibatalkan.",

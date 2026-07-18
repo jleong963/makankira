@@ -65,6 +65,7 @@
   "reminderTimeRequired": "请设置提醒日期和时间",
   "reminderBeforeMeal": "提醒时间必须早于用餐时间",
   "reminderTimePast": "请选择未来的日期和时间",
+  "inSessionReminder": "该提交或确认「{meal}」的点餐了。",
   "mealCreated": "聚餐已创建",
   "mealDeleted": "聚餐已删除",
   "deleteMealConfirm": "删除此聚餐？此操作无法撤销。",

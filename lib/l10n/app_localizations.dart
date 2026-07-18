@@ -490,6 +490,12 @@ abstract class AppLocalizations {
   /// **'Choose a future date & time'**
   String get reminderTimePast;
 
+  /// In-app banner shown to the organizer at the reminder time while the app is open.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to submit or confirm orders for {meal}.'**
+  String inSessionReminder(String meal);
+
   /// No description provided for @mealCreated.
   ///
   /// In en, this message translates to:

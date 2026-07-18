@@ -208,6 +208,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderTimePast => 'Choose a future date & time';
 
   @override
+  String inSessionReminder(String meal) {
+    return 'Time to submit or confirm orders for $meal.';
+  }
+
+  @override
   String get mealCreated => 'Meal created';
 
   @override

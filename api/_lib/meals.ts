@@ -209,13 +209,22 @@ export async function updateMeal(userId: string, mealId: string, input: Input): 
   if ('reminderEnabled' in input) set('reminder_enabled', reminderEnabled ? 1 : 0);
 
   if ('reminderEnabled' in input || 'remindAt' in input) {
-    const remindAt = 'remindAt' in input
+    const newRemindAt = 'remindAt' in input
       ? normalizeRemindAt(input.remindAt, reminderEnabled, mealDateTime, Date.now())
       : reminderEnabled
-        ? (meal.remind_at as string | null) // re-enabled: keep the existing time
+        ? (meal.remind_at as string | null) // re-enabled or unrelated edit: keep the existing time
         : null; // disabled: clear it
-    set('remind_at', remindAt);
-    set('reminder_sent_at', null); // reschedule: allow the reminder to fire again
+    const oldRemindAt = (meal.remind_at as string | null) ?? null;
+    // Only re-arm (clear reminder_sent_at) when the reminder time actually
+    // changes. The app sends reminderEnabled on every save, so clearing it
+    // unconditionally would resurrect an already-fired (or now-past) reminder and
+    // re-notify the organizer on the next cron run. A genuinely new remind_at is
+    // validated to be in the future by normalizeRemindAt, so re-arming is correct;
+    // disabling sets it to null, which stops the reminder regardless.
+    if (newRemindAt !== oldRemindAt) {
+      set('remind_at', newRemindAt);
+      set('reminder_sent_at', null);
+    }
   }
 
   if (sets.length === 0) return meal;

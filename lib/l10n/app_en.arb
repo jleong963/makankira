@@ -65,6 +65,13 @@
   "reminderTimeRequired": "Please set a reminder date & time",
   "reminderBeforeMeal": "Reminder must be earlier than the meal time",
   "reminderTimePast": "Choose a future date & time",
+  "inSessionReminder": "Time to submit or confirm orders for {meal}.",
+  "@inSessionReminder": {
+    "description": "In-app banner shown to the organizer at the reminder time while the app is open.",
+    "placeholders": {
+      "meal": { "type": "String" }
+    }
+  },
   "mealCreated": "Meal created",
   "mealDeleted": "Meal deleted",
   "deleteMealConfirm": "Delete this meal session? This cannot be undone.",

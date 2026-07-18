@@ -34,3 +34,30 @@ Future<Map<String, dynamic>?> subscribeWebPush() async {
     'userAgent': web.window.navigator.userAgent,
   };
 }
+
+/// Best-effort foreground system notification, shown while the app is open (e.g.
+/// the tab is backgrounded). Uses the permission the user already granted via
+/// [subscribeWebPush]; it never prompts and is a no-op when notifications are
+/// unavailable or not permitted. The in-app SnackBar is the reliable fallback.
+void showLocalNotification(String title, String body) {
+  try {
+    if (web.Notification.permission != 'granted') return;
+    web.Notification(
+      title,
+      web.NotificationOptions(body: body, icon: 'icons/Icon-192.png', badge: 'icons/Icon-192.png'),
+    );
+  } catch (_) {
+    // Ignore — the caller also shows an in-app SnackBar, which always works.
+  }
+}
+
+/// Whether the page is currently hidden (backgrounded tab / minimized window).
+/// Lets the caller skip a system notification when the app is on-screen and an
+/// in-app banner already suffices. Defaults to false if the API is unavailable.
+bool pageIsHidden() {
+  try {
+    return web.document.hidden;
+  } catch (_) {
+    return false;
+  }
+}
