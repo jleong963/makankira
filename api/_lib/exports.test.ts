@@ -16,7 +16,9 @@ import {
   buildPaymentCalculationWorkbook,
   buildPaymentRequestsCsv,
   buildMenuTemplateWorkbook,
+  sendFinalizedOrderEmail,
 } from './exports.js';
+import { finalizedOrderText } from './i18n.js';
 
 let dbFile: string;
 let org: Row;
@@ -82,4 +84,19 @@ test('menu template has the import header row', async () => {
 test('export labels are localized (Malay sheet name)', async () => {
   const wb = await load(await buildRestaurantOrderWorkbook(mealId, 'ms'));
   assert.ok(wb.getWorksheet('Ringkasan Restoran'), 'Malay sheet name present');
+});
+
+test('finalizedOrderText localizes subject/body with the meal name', () => {
+  assert.match(finalizedOrderText('en', 'Team Lunch').subject, /Team Lunch/);
+  assert.match(finalizedOrderText('ms', 'Team Lunch').body, /Team Lunch/);
+  // Unknown locale falls back to English.
+  assert.equal(finalizedOrderText('xx', 'X').subject, finalizedOrderText('en', 'X').subject);
+});
+
+test('sendFinalizedOrderEmail no-ops gracefully without email creds', async () => {
+  // No GMAIL_* env in tests: it returns false without sending or throwing (so it
+  // can never fail the finalize that awaits it), and skips the workbook build.
+  assert.equal(await sendFinalizedOrderEmail(mealId, 'Team Lunch', 'org@example.com', 'en'), false);
+  // No recipient is also a graceful no-op.
+  assert.equal(await sendFinalizedOrderEmail(mealId, 'Team Lunch', '', 'en'), false);
 });

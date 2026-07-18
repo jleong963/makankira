@@ -77,6 +77,7 @@ import { addSubscription, removeSubscription } from './_lib/push.js';
 import { sendReminders, markReminderSent } from './_lib/reminders.js';
 import {
   buildRestaurantOrderWorkbook,
+  sendFinalizedOrderEmail,
   buildPaymentCalculationWorkbook,
   buildPaymentRequestsCsv,
   buildMenuTemplateWorkbook,
@@ -221,8 +222,20 @@ const routes: Route[] = [
     sendJson(res, 200, { ok: true });
   }),
   route('POST', 'meals/:mealId/finalize', async (req, res, p) => {
-    const { user } = await requireOwnedMeal(req, p.mealId!);
-    sendJson(res, 200, { meal: toMealSession(await finalizeMeal(String(user.id), p.mealId!)) });
+    const { user, meal: before } = await requireOwnedMeal(req, p.mealId!);
+    const meal = await finalizeMeal(String(user.id), p.mealId!);
+    // On the transition into finalized, email the organizer the locked order
+    // sheet (best-effort; awaited so the serverless fn doesn't freeze mid-send,
+    // but it never throws, so it can't fail the finalize).
+    if (String(before.status) !== 'finalized') {
+      await sendFinalizedOrderEmail(
+        String(meal.id),
+        String(meal.title),
+        String(user.email ?? ''),
+        String(user.preferred_language ?? 'en'),
+      );
+    }
+    sendJson(res, 200, { meal: toMealSession(meal) });
   }),
   route('POST', 'meals/:mealId/status', async (req, res, p) => {
     const { user } = await requireOwnedMeal(req, p.mealId!);

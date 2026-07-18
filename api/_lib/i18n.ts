@@ -152,3 +152,24 @@ const REMINDER: Record<Locale, (meal: string) => { subject: string; body: string
 export function reminderText(locale: string, meal: string): { subject: string; body: string } {
   return REMINDER[(locale as Locale) in REMINDER ? (locale as Locale) : 'en'](meal);
 }
+
+// ---- Order-finalized email text (carries the restaurant order sheet) ------
+
+const FINALIZED: Record<Locale, (meal: string) => { subject: string; body: string }> = {
+  en: (meal) => ({
+    subject: `Orders finalized: ${meal}`,
+    body: `The orders for ${meal} are now locked. The restaurant order sheet (Excel) is attached — send it to the restaurant.`,
+  }),
+  zh: (meal) => ({
+    subject: `点餐已确定：${meal}`,
+    body: `「${meal}」的点餐已锁定。餐厅点餐表（Excel）已附上，请发送给餐厅。`,
+  }),
+  ms: (meal) => ({
+    subject: `Pesanan dimuktamadkan: ${meal}`,
+    body: `Pesanan untuk ${meal} kini dikunci. Helaian pesanan restoran (Excel) dilampirkan — hantar kepada restoran.`,
+  }),
+};
+
+export function finalizedOrderText(locale: string, meal: string): { subject: string; body: string } {
+  return FINALIZED[(locale as Locale) in FINALIZED ? (locale as Locale) : 'en'](meal);
+}

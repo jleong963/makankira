@@ -8,7 +8,7 @@
 import type { Row } from '@libsql/client';
 import { query, execute } from './db.js';
 import { reminderText } from './i18n.js';
-import nodemailer from 'nodemailer';
+import { sendEmail, emailConfigured } from './email.js';
 import * as webpush from 'web-push';
 
 /** Sessions whose reminder is due and not yet sent, while still collecting. */
@@ -55,45 +55,6 @@ export interface ReminderRunSummary {
   pushFailed: number;
 }
 
-let _transport: nodemailer.Transporter | null = null;
-
-/** Lazily-built Gmail SMTP transport, or null when creds aren't configured. No
- *  domain needed: Gmail authenticates the send itself (DKIM/SPF align to
- *  gmail.com), so reminders land in the inbox. Free tier ~500 recipients/day. */
-function gmailTransport(): nodemailer.Transporter | null {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-  if (!user || !pass) return null;
-  if (!_transport) {
-    _transport = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user, pass },
-    });
-  }
-  return _transport;
-}
-
-async function sendEmail(to: string, subject: string, body: string): Promise<boolean> {
-  const transport = gmailTransport();
-  if (!transport) return false;
-  try {
-    await transport.sendMail({
-      // Gmail requires the from-address to be the authenticated account; only the
-      // display name is free-form.
-      from: `MakanKira <${process.env.GMAIL_USER}>`,
-      to,
-      subject,
-      text: body,
-    });
-    return true;
-  } catch (e) {
-    console.error('reminder email failed:', e);
-    return false;
-  }
-}
-
 interface PushResult {
   subscriptions: number;
   sent: number;
@@ -131,11 +92,11 @@ async function sendPush(userId: string, title: string, body: string): Promise<Pu
 
 export async function sendReminders(nowIso: string): Promise<ReminderRunSummary> {
   const due = await findDueSessions(nowIso);
-  const emailConfigured = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  const emailOn = emailConfigured();
   const pushConfigured = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
   const summary: ReminderRunSummary = {
     processed: due.length,
-    emailConfigured,
+    emailConfigured: emailOn,
     pushConfigured,
     emailsSent: 0,
     emailsFailed: 0,
@@ -153,7 +114,7 @@ export async function sendReminders(nowIso: string): Promise<ReminderRunSummary>
       if (ok) {
         summary.emailsSent++;
         emailStatus = 'sent';
-      } else if (emailConfigured) {
+      } else if (emailOn) {
         summary.emailsFailed++;
         emailStatus = 'failed';
       } else {

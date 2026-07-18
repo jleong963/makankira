@@ -6,9 +6,10 @@
 import ExcelJS from 'exceljs';
 import { query, queryOne } from './db.js';
 import { HttpError } from './http.js';
-import { exportLabels } from './i18n.js';
+import { exportLabels, finalizedOrderText } from './i18n.js';
 import { orderSummary } from './orders.js';
 import { buildRequests } from './paymentRequests.js';
+import { sendEmail, emailConfigured } from './email.js';
 
 const rm = (cents: unknown): number => Number(cents ?? 0) / 100;
 
@@ -246,4 +247,35 @@ export async function buildMenuTemplateWorkbook(): Promise<Buffer> {
   ws.addRow(['A01', 'Chicken Rice', 'Main', 'Roasted chicken with rice', 9.5, '', '', 'Yes']);
   finishSheet(ws);
   return toBuffer(wb);
+}
+
+/**
+ * Email the organizer the locked restaurant-order sheet when a meal is finalized
+ * — the same workbook as the on-demand Orders → Export, attached. Best-effort:
+ * returns false (never throws) when email isn't configured, there's no
+ * recipient, or the build/send fails, so it can't break the finalize request
+ * that awaits it.
+ */
+export async function sendFinalizedOrderEmail(
+  mealId: string,
+  title: string,
+  to: string,
+  locale: string,
+): Promise<boolean> {
+  // Skip the workbook build entirely when we couldn't send anyway.
+  if (!to || !emailConfigured()) return false;
+  try {
+    const workbook = await buildRestaurantOrderWorkbook(mealId, locale);
+    const { subject, body } = finalizedOrderText(locale, title);
+    return await sendEmail(to, subject, body, [
+      {
+        filename: 'restaurant-order.xlsx',
+        content: workbook,
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+    ]);
+  } catch (e) {
+    console.error('finalized order email failed:', e);
+    return false;
+  }
 }
