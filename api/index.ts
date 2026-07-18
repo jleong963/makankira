@@ -74,7 +74,7 @@ import { listResults, getMyResult, overrideResult, markPaid, markPending, listEv
 import { buildRequests, buildRequest } from './_lib/paymentRequests.js';
 import { uploadFile, getFile, deleteFile, listMenuImages } from './_lib/files.js';
 import { addSubscription, removeSubscription } from './_lib/push.js';
-import { sendReminders } from './_lib/reminders.js';
+import { sendReminders, markReminderSent } from './_lib/reminders.js';
 import {
   buildRestaurantOrderWorkbook,
   buildPaymentCalculationWorkbook,
@@ -231,6 +231,13 @@ const routes: Route[] = [
   route('POST', 'meals/:mealId/close', async (req, res, p) => {
     const { user } = await requireOwnedMeal(req, p.mealId!);
     sendJson(res, 200, { meal: toMealSession(await closeMeal(String(user.id), p.mealId!)) });
+  }),
+  // Organizer's app fired the in-session reminder — suppress the cron duplicate.
+  route('POST', 'meals/:mealId/reminder-sent', async (req, res, p) => {
+    const { meal } = await requireOwnedMeal(req, p.mealId!);
+    const nowIso = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+    await markReminderSent(String(meal.id), nowIso);
+    sendJson(res, 200, { ok: true });
   }),
 
   // session payment methods

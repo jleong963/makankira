@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../api/api_client.dart';
 import '../../api/models.dart';
 import '../../app/navigation.dart';
 import '../../app/router.dart';
@@ -104,21 +105,31 @@ class _ReminderWatcherState extends ConsumerState<ReminderWatcher> {
     final l = AppLocalizations.of(context);
     final body = l.inSessionReminder(meal.title);
 
-    // When the tab is backgrounded the in-app banner won't be seen, so raise a
-    // best-effort system notification too; when the app is on-screen the banner
-    // below is enough on its own.
-    if (pageIsHidden()) showLocalNotification(l.orderReminder, body);
-
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(body),
-        duration: const Duration(seconds: 8),
-        action: SnackBarAction(
-          label: l.manage,
-          onPressed: () => ref.read(routerProvider).go('/meals/$mealId'),
+    // Fire the real system push notification. If notifications aren't permitted
+    // (in which case there's no server Web Push either), fall back to an in-app
+    // banner so an on-screen organizer still sees the reminder.
+    final pushed = showLocalNotification(l.orderReminder, body, '/meals/$mealId');
+    if (!pushed) {
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(body),
+          duration: const Duration(seconds: 8),
+          action: SnackBarAction(
+            label: l.manage,
+            onPressed: () => ref.read(routerProvider).go('/meals/$mealId'),
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    // De-dupe: mark this reminder delivered in-session so the cron won't also
+    // send it (push + email). Best-effort — the cron is the backstop.
+    _markRemindedOnServer(mealId);
+  }
+
+  void _markRemindedOnServer(String mealId) {
+    final api = ref.read(apiClientProvider);
+    unawaited(api.postJson('/meals/$mealId/reminder-sent').then((_) {}, onError: (_) {}));
   }
 
   @override

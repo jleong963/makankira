@@ -27,6 +27,20 @@ export async function findDueSessions(nowIso: string): Promise<Row[]> {
   );
 }
 
+/**
+ * Mark a session's reminder as delivered — called when the organizer's own app
+ * fires the in-session reminder at remind_at, so the cron doesn't then send a
+ * duplicate (push + email). Idempotent and race-safe: only stamps the time when
+ * it's still null, so it never clobbers (or double-counts against) a real cron
+ * send that may already have happened.
+ */
+export async function markReminderSent(mealId: string, nowIso: string): Promise<void> {
+  await execute(
+    'UPDATE meal_sessions SET reminder_sent_at = ? WHERE id = ? AND reminder_sent_at IS NULL',
+    [nowIso, mealId],
+  );
+}
+
 /** Outcome of one reminder run — logged and returned so a single cron run tells
  *  you exactly what went out (and why nothing did). Surfaced as the JSON body of
  *  POST /api/cron/reminders, which the GitHub Actions log prints verbatim. */

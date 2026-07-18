@@ -35,28 +35,29 @@ Future<Map<String, dynamic>?> subscribeWebPush() async {
   };
 }
 
-/// Best-effort foreground system notification, shown while the app is open (e.g.
-/// the tab is backgrounded). Uses the permission the user already granted via
-/// [subscribeWebPush]; it never prompts and is a no-op when notifications are
-/// unavailable or not permitted. The in-app SnackBar is the reliable fallback.
-void showLocalNotification(String title, String body) {
+/// Fires the real system notification the organizer sees at the reminder time,
+/// using the permission already granted via [subscribeWebPush] (it never
+/// prompts). Returns true if shown, or false when notifications aren't permitted
+/// or available — in which case there's no server Web Push either, so the caller
+/// falls back to an in-app banner. Clicking it focuses the app and, best-effort,
+/// opens [routePath] via the hash router.
+bool showLocalNotification(String title, String body, [String? routePath]) {
   try {
-    if (web.Notification.permission != 'granted') return;
-    web.Notification(
+    if (web.Notification.permission != 'granted') return false;
+    final n = web.Notification(
       title,
       web.NotificationOptions(body: body, icon: 'icons/Icon-192.png', badge: 'icons/Icon-192.png'),
     );
-  } catch (_) {
-    // Ignore — the caller also shows an in-app SnackBar, which always works.
-  }
-}
-
-/// Whether the page is currently hidden (backgrounded tab / minimized window).
-/// Lets the caller skip a system notification when the app is on-screen and an
-/// in-app banner already suffices. Defaults to false if the API is unavailable.
-bool pageIsHidden() {
-  try {
-    return web.document.hidden;
+    n.onclick = (web.Event _) {
+      try {
+        web.window.focus();
+        if (routePath != null) web.window.location.hash = routePath;
+        n.close();
+      } catch (_) {
+        // best-effort — a missed focus/navigation is harmless
+      }
+    }.toJS;
+    return true;
   } catch (_) {
     return false;
   }

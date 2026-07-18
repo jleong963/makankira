@@ -6,7 +6,7 @@ import { setupTestDb } from './testdb.js';
 import { execute } from './db.js';
 import { upsertUser } from './auth.js';
 import { createMeal, updateMeal, getMeal } from './meals.js';
-import { findDueSessions, sendReminders } from './reminders.js';
+import { findDueSessions, sendReminders, markReminderSent } from './reminders.js';
 
 let dbFile: string;
 let org: Row;
@@ -96,4 +96,25 @@ test('sendReminders marks a due session sent exactly once', async () => {
   await sendReminders('2026-06-29T00:00:00Z');
   const after = String((await getMeal(String(m.id)))!.reminder_sent_at);
   assert.equal(after, before, 'not re-sent on a later run');
+});
+
+test('markReminderSent suppresses the cron (in-session de-dup) and is idempotent', async () => {
+  const m = await createMeal(org, { title: 'InSession', restaurantName: 'R' });
+  await execute(
+    "UPDATE meal_sessions SET status='collecting_orders', remind_at='2026-06-27T00:00:00Z' WHERE id=?",
+    [String(m.id)],
+  );
+
+  // The organizer's app fired the reminder in-session and marked it.
+  await markReminderSent(String(m.id), '2026-06-27T00:00:00Z');
+  const dueIds = (await findDueSessions('2026-06-28T00:00:00Z')).map((r) => String(r.id));
+  assert.ok(!dueIds.includes(String(m.id)), 'cron no longer treats it as due');
+
+  // A second mark must not overwrite the first timestamp (never clobbers a send).
+  await markReminderSent(String(m.id), '2026-06-30T00:00:00Z');
+  assert.equal(
+    String((await getMeal(String(m.id)))!.reminder_sent_at),
+    '2026-06-27T00:00:00Z',
+    'timestamp preserved (idempotent)',
+  );
 });
