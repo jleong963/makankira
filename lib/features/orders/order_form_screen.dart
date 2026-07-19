@@ -11,6 +11,7 @@ import '../menu/menu_controller.dart';
 import '../menu/menu_images_controller.dart';
 import '../menu/menu_images_editor.dart';
 import 'orders_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 5 — participant order form (organizer enters on their device).
 /// Doubles as the edit form when [order] is supplied.
@@ -162,7 +163,7 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
     final menuImageUrls =
         ref.watch(menuImagesProvider(widget.mealId)).asData?.value.map((e) => e.url).toList() ?? const <String>[];
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? l.edit : l.addOrder)),
+      appBar: AppBar(title: Text(_isEditing ? l.edit : l.addOrder), actions: const [LanguageMenu()]),
       body: menu.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('${l.errorTitle}: $e')),

@@ -10,6 +10,7 @@ import '../auth/auth_controller.dart';
 import '../menu/menu_images_controller.dart';
 import '../menu/menu_images_editor.dart';
 import 'meals_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 3 — create or edit a meal session.
 class MealSetupScreen extends ConsumerStatefulWidget {
@@ -283,7 +284,7 @@ class _MealSetupScreenState extends ConsumerState<MealSetupScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? l.edit : l.mealSetup)),
+      appBar: AppBar(title: Text(_isEditing ? l.edit : l.mealSetup), actions: const [LanguageMenu()]),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),

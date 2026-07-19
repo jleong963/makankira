@@ -4,6 +4,7 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 2D — profile: display name + mobile (email read-only).
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -97,7 +98,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.profile)),
+      appBar: AppBar(title: Text(l.profile), actions: const [LanguageMenu()]),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),

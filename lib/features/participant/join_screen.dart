@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import 'participant_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Landing target of an invite link (/join/:token). The auth gate guarantees the
 /// user is signed in by the time we get here; we record the membership and open
@@ -39,7 +40,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.appName)),
+      appBar: AppBar(title: Text(l.appName), actions: const [LanguageMenu()]),
       body: Center(
         child: _error == null
             ? const CircularProgressIndicator()

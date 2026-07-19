@@ -10,6 +10,7 @@ import '../../shared/formatters.dart';
 import '../menu/menu_images_controller.dart';
 import '../menu/menu_images_editor.dart';
 import 'meals_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 3/6 hub — meal info + payment methods + links to the sub-screens.
 class MealDetailScreen extends ConsumerWidget {
@@ -82,6 +83,7 @@ class MealDetailScreen extends ConsumerWidget {
           _ => l.mealSetup,
         }),
         actions: [
+          const LanguageMenu(),
           if (meal != null)
             IconButton(
               tooltip: l.shareLink,

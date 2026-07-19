@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/api_client.dart';
 import '../../l10n/app_localizations.dart';
 import 'web_push.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 2C — notifications: email reminders note + Web Push opt-in.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -40,7 +41,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.notifications)),
+      appBar: AppBar(title: Text(l.notifications), actions: const [LanguageMenu()]),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

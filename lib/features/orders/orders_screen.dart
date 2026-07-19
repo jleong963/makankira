@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
 import '../meals/meals_controller.dart';
 import 'orders_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 6 — order review: list, by item, by person; finalize.
 class OrdersScreen extends ConsumerStatefulWidget {
@@ -69,6 +70,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
       appBar: AppBar(
         title: Text(l.sectionOrders),
         actions: [
+          const LanguageMenu(),
           IconButton(
             tooltip: l.exportExcel,
             icon: const Icon(Icons.download),

@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import 'bill_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screens 7-8 — bill entry (tax/service/discount/company claim/final bill +
 /// mode) and the calculation results.
@@ -21,6 +22,7 @@ class BillScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l.sectionBill),
         actions: [
+          const LanguageMenu(),
           IconButton(
             tooltip: l.exportExcel,
             icon: const Icon(Icons.download),

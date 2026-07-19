@@ -4,6 +4,7 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import 'method_editor.dart';
 import 'payment_defaults_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 2B — account-level saved receiving methods.
 class PaymentDefaultsScreen extends ConsumerWidget {
@@ -29,7 +30,7 @@ class PaymentDefaultsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final methods = ref.watch(paymentDefaultsProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l.paymentDefaults)),
+      appBar: AppBar(title: Text(l.paymentDefaults), actions: const [LanguageMenu()]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditor(context, ref),
         icon: const Icon(Icons.add),

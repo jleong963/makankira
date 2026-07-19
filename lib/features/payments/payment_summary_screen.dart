@@ -8,6 +8,7 @@ import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../billing/bill_controller.dart';
 import '../meals/meals_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Read-only payment summary: the full breakdown per person and the final
 /// amount each owes the organizer, plus the grand total payable to the
@@ -42,6 +43,7 @@ class PaymentSummaryScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l.sectionPaymentSummary),
         actions: [
+          const LanguageMenu(),
           results.maybeWhen(
             data: (list) => list.isEmpty
                 ? const SizedBox.shrink()

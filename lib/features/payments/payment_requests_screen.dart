@@ -8,6 +8,7 @@ import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../billing/bill_controller.dart';
 import 'payments_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Screen 9 — payment requests: localized message, copy, free wa.me, mark paid.
 class PaymentRequestsScreen extends ConsumerWidget {
@@ -35,6 +36,7 @@ class PaymentRequestsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l.sectionPaymentRequests),
         actions: [
+          const LanguageMenu(),
           IconButton(
             tooltip: l.exportCsv,
             icon: const Icon(Icons.download),

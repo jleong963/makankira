@@ -6,6 +6,7 @@ import '../../shared/browser.dart';
 import '../../shared/formatters.dart';
 import '../meals/meals_controller.dart';
 import 'menu_controller.dart';
+import '../../shared/language_menu.dart';
 
 String _centsToInput(int? c) => c == null ? '' : (c / 100).toStringAsFixed(2);
 int? _parseCents(String s) {
@@ -56,6 +57,7 @@ class MenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l.menuManager),
         actions: [
+          const LanguageMenu(),
           if (menuUrl != null && menuUrl.isNotEmpty)
             IconButton(
               tooltip: l.menuUrl,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import 'theme_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Settings hub (Screens 2B–2D).
 class SettingsScreen extends ConsumerWidget {
@@ -13,7 +14,7 @@ class SettingsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
     return Scaffold(
-      appBar: AppBar(title: Text(l.settings)),
+      appBar: AppBar(title: Text(l.settings), actions: const [LanguageMenu()]),
       body: ListView(
         children: [
           ListTile(

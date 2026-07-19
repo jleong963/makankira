@@ -9,6 +9,7 @@ import '../../shared/phone_field.dart';
 import '../auth/auth_controller.dart';
 import '../menu/menu_images_editor.dart';
 import 'participant_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Participant view of a meal they joined via an invite link: meal info, their
 /// own order (add / edit / withdraw), and everyone's orders (read-only). Editing
@@ -79,6 +80,7 @@ class ParticipantMealScreen extends ConsumerWidget {
         ),
         title: Text(view.asData?.value.meal.title ?? l.mealSessions),
         actions: [
+          const LanguageMenu(),
           if (menuUrl != null && menuUrl.isNotEmpty)
             IconButton(
               tooltip: l.menuUrl,

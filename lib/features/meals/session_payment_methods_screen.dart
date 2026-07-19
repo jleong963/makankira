@@ -4,6 +4,7 @@ import '../../api/models.dart';
 import '../../l10n/app_localizations.dart';
 import '../settings/method_editor.dart';
 import 'session_payment_methods_controller.dart';
+import '../../shared/language_menu.dart';
 
 /// Per-meal-session receiving methods, editable by the organizer (add / edit /
 /// delete). Independent of the account defaults in Settings — changes here only
@@ -33,7 +34,7 @@ class SessionPaymentMethodsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final methods = ref.watch(sessionPaymentMethodsProvider(mealId));
     return Scaffold(
-      appBar: AppBar(title: Text(l.paymentMethods)),
+      appBar: AppBar(title: Text(l.paymentMethods), actions: const [LanguageMenu()]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditor(context, ref),
         icon: const Icon(Icons.add),
