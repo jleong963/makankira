@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/api_client.dart';
 import '../../api/models.dart';
+import 'google/gis.dart';
 
 /// Current signed-in user (null when signed out). Loads /auth/me on startup.
 class AuthController extends AsyncNotifier<AppUser?> {
@@ -23,6 +24,7 @@ class AuthController extends AsyncNotifier<AppUser?> {
   }
 
   Future<void> signOut() async {
+    Gis.signOut(); // clear GIS auto-select so the next sign-in shows the chooser
     await ref.read(apiClientProvider).postJson('/auth/logout');
     state = const AsyncData(null);
   }

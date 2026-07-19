@@ -194,8 +194,8 @@ turso db tokens create makankira-dev     # → TURSO_AUTH_TOKEN
 1. Create a project (e.g. `MakanKira`).
 2. Configure the **OAuth consent screen** (External; scopes `email` and `profile`).
 3. **Credentials → Create credentials → OAuth client ID → Web application**.
-4. Under **Authorized JavaScript origins**, add `http://localhost:3000`.
-5. Copy the **Client ID** → `GOOGLE_OAUTH_CLIENT_ID`. *(No redirect URI is needed — this app verifies the ID token server-side. The client secret is not used.)*
+4. Under **Authorized JavaScript origins**, add `http://localhost:3000` and your production origin (e.g. `https://makankira.vercel.app`) — the Google Identity Services button only works on listed origins.
+5. Copy the **Client ID** → `GOOGLE_OAUTH_CLIENT_ID`. *(No redirect URI is needed — sign-in happens in the page via the GIS button and the ID token is verified server-side. The client secret is not used.)*
 
 **c) Session secret** — generate a random string (works on any OS with Node):
 
